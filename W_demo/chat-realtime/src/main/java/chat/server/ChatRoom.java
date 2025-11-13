@@ -30,77 +30,63 @@ public class ChatRoom {
         this.isPrivate = isPrivate;
     }
 
+    public ChatRoom(String roomId, String roomName, String createdBy, int maxMembers, boolean isPrivate, String password) {
+        this(roomId, roomName, createdBy, maxMembers, isPrivate);
+        this.password = password;
+    }
 
     public synchronized boolean addMember(ClientHandler client) {
         if (members.size() >= maxMembers) {
-            client.sendMessage("ERROR: Phòng đã đầy " + maxMembers + " người");
+            client.sendMessage("ERROR: Phong da day " + maxMembers + " nguoi");
             return false;
         }
 
         if (bannedUsers.contains(client.getUsername())) {
-            client.sendMessage("ERROR: Bạn đã bị cấm khỏi phòng này");
-            return false;
-        }
-
-        if (isPrivate && password != null) {
-            client.sendMessage("ERROR: Phòng riêng, cần mật khẩu để tham gia");
+            client.sendMessage("ERROR: Ban da bi cam khoi phong nay");
             return false;
         }
 
         members.add(client);
-        client.setCurrentRoom(this);
-
-        broadcastSystemMessage(client.getUsername() + " đã tham gia phòng", client);
-        
-        System.out.println("ERROR:" + client.getUsername() + " đã tham gia phòng " + roomName);
+        broadcastSystemMessage(client.getUsername() + " da tham gia phong", client);
         return true;
     }
 
-
     public synchronized void removeMember(ClientHandler client) {
         if (members.remove(client)) {
-            client.setCurrentRoom(null);
-            broadcastSystemMessage(client.getUsername() + " đã rời khỏi phòng", null);
-            System.out.println("ERROR: " + client.getUsername() + " đã rời khỏi phòng " + roomName);
+            broadcastSystemMessage(client.getUsername() + " da roi khoi phong", null);
         }
     }
-
 
     public synchronized boolean banUser(String username, String reason) {
         ClientHandler member = getMember(username);
         if (member != null) {
             removeMember(member);
-            member.sendMessage("Bạn đã bị cấm khỏi phòng '" + roomName + "'. Lý do: " + reason);
+            member.sendMessage("Ban da bi cam khoi phong '" + roomName + "'. Ly do: " + reason);
         }
-        
         bannedUsers.add(username);
-        broadcastSystemMessage("Thành viên '" + username + "' đã bị cấm. Lý do: " + reason, null);
+        broadcastSystemMessage("Thanh vien '" + username + "' da bi cam. Ly do: " + reason, null);
         return true;
     }
-
 
     public synchronized boolean unbanUser(String username) {
         boolean removed = bannedUsers.remove(username);
         if (removed) {
-            broadcastSystemMessage("Thành viên '" + username + "' đã được gỡ cấm", null);
+            broadcastSystemMessage("Thanh vien '" + username + "' da duoc go cam", null);
         }
         return removed;
     }
 
-
     public void broadcastSystemMessage(String message, ClientHandler exclude) {
         for (ClientHandler member : members) {
             if (exclude == null || !member.equals(exclude)) {
-                member.sendMessage("[THÔNG BÁO] " + message);
+                member.sendMessage("[THONG BAO] " + message);
             }
         }
     }
 
-    //ktra thanh vien trong phong
     public boolean hasMember(String username) {
         return getMember(username) != null;
     }
-
 
     private ClientHandler getMember(String username) {
         for (ClientHandler member : members) {
@@ -110,7 +96,6 @@ public class ChatRoom {
         }
         return null;
     }
-
 
     public Set<String> getMemberUsernames() {
         Set<String> usernames = new HashSet<>();
@@ -132,10 +117,4 @@ public class ChatRoom {
     public int getMaxMembers() { return maxMembers; }
     public boolean isPrivate() { return isPrivate; }
     public Set<String> getBannedUsers() { return new HashSet<>(bannedUsers); }
-
-    @Override
-    public String toString() {
-        return String.format("ChatRoom{id='%s', name='%s', members=%d/%d}",
-                roomId, roomName, members.size(), maxMembers);
-    }
 }

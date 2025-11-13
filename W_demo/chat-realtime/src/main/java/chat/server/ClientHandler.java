@@ -34,7 +34,6 @@ class ClientHandler implements Runnable {
                 while ((message = reader.readLine()) != null) {
                     if (message.equalsIgnoreCase("exit")) break;
                     
-                    // Gửi tin nhắn đến tất cả client
                     server.broadcastMessage(username + ": " + message);
                 }
             }
