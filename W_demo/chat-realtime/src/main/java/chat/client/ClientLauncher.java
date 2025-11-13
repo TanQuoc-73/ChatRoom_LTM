@@ -1,51 +1,37 @@
 package chat.client;
 
-import java.util.Scanner;
+import chat.core.Message;
+import chat.core.MessageListener;
+
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 
 public class ClientLauncher {
-    public static void main(String[] args) {
-        String host = "localhost";
-        int port = 8080;
-
-        Scanner sc = new Scanner(System.in);
-        System.out.print("Nhập tên của bạn: ");
-        String username = sc.nextLine();
-
+    public static void main(String[] args) throws Exception {
         ChatClient client = new ChatClient();
-        client.addMessageListener(new chat.core.MessageListener() {
-            @Override
-            public void onMessageReceived(String message) {
-                System.out.println(message);
-            }
 
-            @Override
-            public void onUserJoined(String username) {
-                System.out.println("[JOIN] " + username + " đã vào phòng.");
-            }
+        // 1. Đăng ký sự kiện nhận tin
+        client.addListener(msg ->
+            System.out.printf("[%d] %s: %s%n",
+                msg.getTimestamp(), msg.getSender(), msg.getContent()));
 
-            @Override
-            public void onUserLeft(String username) {
-                System.out.println("[LEAVE] " + username + " đã rời khỏi phòng.");
-            }
+        // 2. Nhập tên
+        System.out.print("Tên của bạn: ");
+        BufferedReader console = new BufferedReader(new InputStreamReader(System.in));
+        String name = console.readLine();
 
-            @Override
-            public void onError(String error) {
-                System.err.println("[ERROR] " + error);
-            }
-        });
+        // 3. Kết nối tới server
+        client.connect("localhost", 8080);
 
-        client.connectToServer(host, port, username);
-
-        // Nhập tin nhắn từ console
-        while (true) {
-            String msg = sc.nextLine();
-            if ("exit".equalsIgnoreCase(msg)) {
-                client.disconnect();
-                break;
-            }
-            client.sendMessage(msg);
+        // 4. Chat loop
+        String line;
+        while (!(line = console.readLine()).equalsIgnoreCase("/quit")) {
+            // dùng constructor 3 tham số: roomId = "lobby"
+            client.send(new Message("lobby", name, line));
         }
 
-        sc.close();
+        // 5. Thoát
+        client.disconnect();
+        System.exit(0);
     }
 }
