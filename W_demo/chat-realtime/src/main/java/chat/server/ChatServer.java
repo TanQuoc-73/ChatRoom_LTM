@@ -2,12 +2,15 @@ package chat.server;
 
 import chat.core.ChatService;
 import chat.core.MessageListener;
+import chat.core.spi.AuthGateway;
+import chat.core.spi.MessageStore;
+import chat.core.spi.RoomStore;
 import java.io.*;
 import java.net.*;
 import java.util.*;
 import java.util.concurrent.*;
 
-public class ChatServer implements ChatService {
+public class ChatServer extends ChatService{
     private ServerSocket serverSocket;
     private ExecutorService threadPool;
     private Set<ClientHandler> clients;
@@ -15,12 +18,12 @@ public class ChatServer implements ChatService {
     private boolean isRunning;
 
     public ChatServer() {
+        super(new InMemoryAuth(), new InMemoryMessageStore(), new InMemoryRoomStore());
         this.clients = ConcurrentHashMap.newKeySet();
         this.listeners = new CopyOnWriteArrayList<>();
         this.threadPool = Executors.newCachedThreadPool();
     }
 
-    @Override
     public void startServer(int port) {
         try {
             serverSocket = new ServerSocket(port);
@@ -47,7 +50,6 @@ public class ChatServer implements ChatService {
         }
     }
 
-    @Override
     public void stopServer() {
         isRunning = false;
         try {
@@ -74,15 +76,13 @@ public class ChatServer implements ChatService {
     }
 
     public void notifyUserJoined(String username) {
-        for (MessageListener listener : listeners) {
-            listener.onUserJoined(username);
-        }
+        // MessageListener does not define onUserJoined; reuse onMessageReceived to announce joins.
+        notifyMessage("User joined: " + username);
     }
 
     public void notifyUserLeft(String username) {
-        for (MessageListener listener : listeners) {
-            listener.onUserLeft(username);
-        }
+        // MessageListener does not define onUserLeft; reuse onMessageReceived to announce leaves.
+        notifyMessage("User left: " + username);
     }
 
     private void notifyMessage(String message) {
@@ -97,19 +97,66 @@ public class ChatServer implements ChatService {
         }
     }
 
-    @Override
     public void addMessageListener(MessageListener listener) {
         listeners.add(listener);
     }
-
-    @Override
     public void removeMessageListener(MessageListener listener) {
         listeners.remove(listener);
     }
-    @Override
     public void connectToServer(String host, int port, String username) {}
-    @Override
     public void sendMessage(String message) {}
-    @Override
     public void disconnect() {}
+
+    // ----- Simple in-memory SPI implementations for convenience -----
+    private static class InMemoryAuth implements AuthGateway {
+        @Override
+        public boolean authenticate(String username, String password) {
+            return username != null && !username.trim().isEmpty();
+        }
+
+        @Override
+        public boolean isUserInRoom(String username, String roomId) { return false; }
+
+        @Override
+        public boolean canUserJoinRoom(String username, String roomId) { return true; }
+    }
+
+    private static class InMemoryMessageStore implements MessageStore {
+        @Override
+        public void saveMessage(chat.core.Message message) { }
+
+        @Override
+        public java.util.List<chat.core.Message> getMessages(String roomId, int limit, long beforeTimestamp) { return java.util.Collections.emptyList(); }
+
+        @Override
+        public java.util.List<chat.core.Message> getMessagesSince(String roomId, long sinceTimestamp) { return java.util.Collections.emptyList(); }
+
+        @Override
+        public void deleteMessage(String messageId) { }
+    }
+
+    private static class InMemoryRoomStore implements RoomStore {
+        private final ConcurrentMap<String, Set<String>> rooms = new ConcurrentHashMap<>();
+
+        @Override
+        public boolean roomExists(String roomId) { return rooms.containsKey(roomId); }
+
+        @Override
+        public void createRoom(String roomId, String createdBy) { rooms.putIfAbsent(roomId, ConcurrentHashMap.newKeySet()); }
+
+        @Override
+        public void deleteRoom(String roomId) { rooms.remove(roomId); }
+
+        @Override
+        public Set<String> getRoomUsers(String roomId) { return rooms.getOrDefault(roomId, java.util.Collections.emptySet()); }
+
+        @Override
+        public java.util.List<String> getAllRooms() { return new java.util.ArrayList<>(rooms.keySet()); }
+
+        @Override
+        public void addUserToRoom(String roomId, String username) { rooms.computeIfAbsent(roomId, k -> ConcurrentHashMap.newKeySet()).add(username); }
+
+        @Override
+        public void removeUserFromRoom(String roomId, String username) { Set<String> s = rooms.get(roomId); if (s != null) s.remove(username); }
+    }
 }
