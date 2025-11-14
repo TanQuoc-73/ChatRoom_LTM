@@ -2,75 +2,67 @@ package chat.client;
 
 import chat.core.Message;
 import chat.core.MessageListener;
+import chat.core.protocol.Envelope;
+import chat.core.protocol.MessageType;
+import chat.core.protocol.Events;
 
 import java.io.*;
 import java.net.Socket;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
- * ChatClient đại diện cho MỘT người dùng.
- * - Kết nối TCP tới server
- * - Gửi & nhận tin nhắn (Message)
- * - Kích hoạt sự kiện cho các giao diện (console, GUI, v.v.)
- * - Ngắt kết nối an toàn
+ * ChatClient - Gửi/nhận Envelope, xử lý tin nhắn và sự kiện
  */
-
-
 public class ChatClient {
-    
-    private Socket socket;               // Ống nối TCP tới server
-    private ObjectOutputStream out;      // Luồng GỬI object
-    private ObjectInputStream  in;       // Luồng NHẬN object
-
-
-    /* ===== Danh sách người muốn nghe sự kiện tin nhắn ===== */
+    private Socket socket;
+    private ObjectOutputStream out;
+    private ObjectInputStream in;
     private final CopyOnWriteArrayList<MessageListener> listeners = new CopyOnWriteArrayList<>();
 
-   
     public void connect(String host, int port) throws IOException {
-        socket = new Socket(host, port);           
-        out = new ObjectOutputStream(socket.getOutputStream()); 
-        in  = new ObjectInputStream(socket.getInputStream());   
-        new Thread(this::listenForMessage).start(); 
+        socket = new Socket(host, port);
+        out = new ObjectOutputStream(socket.getOutputStream());
+        in = new ObjectInputStream(socket.getInputStream());
+        new Thread(this::listen).start();
     }
 
-    
-    public void send(Message msg) throws IOException {
-        out.writeObject(msg); 
-        out.flush();          
-    }
-
-    /* ===== NGẮT kết nối ===== */
-    public void disconnect() throws IOException {
-        // 1. Báo server biết mình thoát (tuân thủ giao thức)
-        out.writeObject(new Message("system", "system", "/quit"));
+    public void send(Envelope env) throws IOException {
+        out.writeObject(env);
         out.flush();
-        // 2. Xóa hết listener
-        listeners.clear();
-        // 3. Đóng socket → giải phóng cổng + tài nguyên
+    }
+
+    public void addListener(MessageListener l) { listeners.add(l); }
+
+    public void disconnect() throws IOException {
         if (socket != null) socket.close();
     }
 
-
-    
-    /* ===== THÊM/XÓA người nghe sự kiện ===== */
-    public void addListener(MessageListener l) { listeners.add(l); }
-    public void removeListener(MessageListener l) { listeners.remove(l); }
-
-    /* ===== LUỒNG RIÊNG: lắng nghe tin từ server ===== */
-    private void listenForMessage() {
+    private void listen() {
         try {
-            while (true) { 
-                Message msg = (Message) in.readObject(); // Đọc object (chặn - blocking)
-                // Kích hoạt TẤT CẢ listener đã đăng ký
-                for (MessageListener l : listeners) l.onMessage(msg);
+            while (true) {
+                Envelope env = (Envelope) in.readObject();
+                handle(env);
             }
-        } catch (EOFException e) {
-            System.err.println("Server đã ngắt kết nối.");
-        } catch (IOException | ClassNotFoundException e) {
-            System.err.println("Lỗi khi nhận tin: " + e.getMessage());
-        } finally {
+        } catch (Exception e) {
             listeners.forEach(MessageListener::onDisconnect);
+        }
+    }
+
+    private void handle(Envelope env) {
+        for (MessageListener l : listeners) {
+            switch (env.getType()) {
+                case CHAT_MESSAGE -> {
+                    Message m = new Message(env.getRoomId(), env.getSender(), env.getPayload());
+                    l.onMessage(m);
+                }
+                case PRIVATE_MESSAGE -> {
+                    Message m = new Message("DM", env.getSender(), env.getPayload());
+                    l.onMessage(m);
+                }
+                case USER_JOINED -> l.onEvent(new Events.UserJoined(env.getRoomId(), env.getSender()));
+                case USER_LEFT -> l.onEvent(new Events.UserLeft(env.getRoomId(), env.getSender()));
+                case ERROR -> l.onError(env.getPayload());
+            }
         }
     }
 }

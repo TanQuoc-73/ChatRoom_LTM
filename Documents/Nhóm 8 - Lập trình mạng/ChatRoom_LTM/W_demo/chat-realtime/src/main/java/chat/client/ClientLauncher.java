@@ -2,147 +2,92 @@ package chat.client;
 
 import chat.core.Message;
 import chat.core.MessageListener;
+import chat.core.protocol.Envelope;
+import chat.core.protocol.MessageType;
+import chat.core.protocol.Events;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.io.IOException;
 
 /**
- * ClientLauncher: Điểm khởi chạy của ứng dụng, xử lý input/output console.
- * - Đã loại bỏ: Logic gửi lệnh /login và chờ xác thực.
- * - CHÚ Ý: Người dùng sẽ được coi là "đăng nhập" ngay sau khi kết nối.
+ * Console Client - Chỉ chat, join, whisper, quit
  */
-
 public class ClientLauncher {
-    
-    // Loại bỏ cờ isLoggedIn. Client được coi là đã "đăng nhập" ngay lập tức.
-    private static String currentRoom = "lobby"; // Biến quản lý phòng hiện tại
-    private static final String DEFAULT_HOST = "localhost";
-    private static final int DEFAULT_PORT = 8080;
-    
-    // Cờ này sẽ được dùng để kiểm tra Client có còn kết nối không
-    private static volatile boolean isConnected = false; 
+    private static final String HOST = "localhost";
+    private static final int PORT = 8080;
+    private static volatile boolean running = true;
+    private static String room = "lobby";
 
-    public static void main(String[] args) {
-        
-        try (BufferedReader console = new BufferedReader(new InputStreamReader(System.in))) {
-            
-            ChatClient client = new ChatClient();
-            
-            client.addListener(new MessageListener() {
-                @Override
-                public void onMessage(Message msg) {
-                    if (msg.getSender().equalsIgnoreCase("system")) {
-                        // Xử lý phản hồi THAM GIA PHÒNG
-                        if (msg.getContent().startsWith("/join success")) {
-                            String newRoom = msg.getContent().substring(14).trim();
-                            currentRoom = newRoom;
-                            System.out.println(">>> Đã tham gia phòng: " + currentRoom);
-                        }
-                        // Xử lý các thông báo hệ thống khác
-                        else {
-                            System.out.println("--- [SYSTEM]: " + msg.getContent() + " ---");
-                        }
-                        
-                    } else {
-                        // In tin nhắn chat thông thường hoặc tin nhắn riêng tư
-                        String prefix = msg.getRoomId().equals("PRIVATE") ? "[PRIVATE]" : "[" + msg.getRoomId() + "]"; 
-                        System.out.printf("%s [%s] %s: %s%n",
-                                prefix,
-                                msg.getSender(), 
-                                msg.getTimestamp(), 
-                                msg.getContent());
-                    }
-                }
-                
-                @Override
-                public void onDisconnect() {
-                    // Cập nhật trạng thái ngắt kết nối
-                    isConnected = false; 
-                    System.err.println("\n*** KẾT NỐI ĐÃ BỊ NGẮT. Đang thoát...");
-                    // Việc thoát sẽ do khối finally xử lý
-                }
-            });
+    public static void main(String[] args) throws Exception {
+        ChatClient client = new ChatClient();
+        BufferedReader console = new BufferedReader(new InputStreamReader(System.in));
 
-            // 1. Nhập tên hiển thị
-            System.out.print("Tên của bạn: ");
-            String name = console.readLine();
+        System.out.print("Tên bạn: ");
+        String inputName = console.readLine().trim();
+        final String name = inputName.isEmpty() 
+            ? "User" + (int)(Math.random() * 1000) 
+            : inputName;
 
-            // 2. Mở kết nối
-            client.connect(DEFAULT_HOST, DEFAULT_PORT);
-            isConnected = true; // Đánh dấu là đã kết nối thành công
-            
-            System.out.println(">>> Đã kết nối thành công tới " + DEFAULT_HOST + ":" + DEFAULT_PORT + ".");
-            System.out.println(">>> Bắt đầu chat. Phòng hiện tại: " + currentRoom);
-            
-            // THÊM: Gửi một tin nhắn thông báo cho Server về tên người dùng và phòng mặc định (dùng lệnh /join)
-            // Server cần nhận được tên người dùng ban đầu. Ta dùng lệnh /join mặc dù không cần xử lý xác thực
-            client.send(new Message("system", name, "/join " + currentRoom));
-            
-            // 3. Vòng lặp chat: gõ → gửi → chờ in
-            String line;
-            while ((line = console.readLine()) != null && isConnected) {
-                if (line.isEmpty()) continue;
+        client.addListener(new MessageListener() {
+            @Override public void onMessage(Message m) {
+                String prefix = "DM".equals(m.getRoomId()) ? "[DM]" : "[" + m.getRoomId() + "]";
+                System.out.println(prefix + " " + m.getSender() + ": " + m.getContent());
+            }
 
-                // Xử lý các lệnh (Command Parsing)
-                if (line.startsWith("/")) {
-                    if (line.equalsIgnoreCase("/quit")) {
-                        break; // Thoát vòng lặp
-                    } else if (line.startsWith("/join ")) {
-                        handleJoinCommand(client, name, line);
-                    } else if (line.startsWith("/whisper ")) {
-                        handleWhisperCommand(client, name, line);
-                    } else if (line.equalsIgnoreCase("/room")) {
-                        System.out.println(">>> Bạn đang ở phòng: " + currentRoom);
-                    } else {
-                        System.err.println("!!! Lệnh không hợp lệ. Các lệnh hợp lệ: /quit, /join <room>, /whisper <user> <msg>");
-                    }
-                } else {
-                    // Gửi tin nhắn chat thông thường tới phòng hiện tại
-                    client.send(new Message(currentRoom, name, line));
+            @Override public void onEvent(Object e) {
+                if (e instanceof Events.UserJoined j) {
+                    System.out.println(">>> " + j.username + " vào phòng " + j.roomId);
+                    if (j.username.equals(name)) room = j.roomId;
+                } else if (e instanceof Events.UserLeft l) {
+                    System.out.println(">>> " + l.username + " rời phòng");
                 }
             }
-            
-            // 4. Thoát
-            client.disconnect();
-            
-        } catch (IOException e) {
-            System.err.println("Lỗi I/O (Mạng/Console): " + e.getMessage());
-        } catch (Exception e) {
-            System.err.println("Lỗi nghiêm trọng: " + e.getMessage());
-        } finally {
-            System.exit(0); // Đảm bảo ứng dụng thoát
-        }
-    }
-    
-    // Hàm xử lý lệnh /join
-    private static void handleJoinCommand(ChatClient client, String sender, String line) throws IOException {
-        String[] parts = line.split(" ", 2);
-        if (parts.length < 2 || parts[1].trim().isEmpty()) {
-            System.err.println("!!! Cú pháp: /join <room_name>");
-            return;
-        }
-        String newRoom = parts[1].trim();
-        // Gửi lệnh /join tới Server
-        client.send(new Message("system", sender, "/join " + newRoom));
-        System.out.println(">>> Đang cố gắng tham gia phòng: " + newRoom + "...");
-    }
 
-    // Hàm xử lý lệnh /whisper
-    private static void handleWhisperCommand(ChatClient client, String sender, String line) throws IOException {
-        String content = line.substring("/whisper ".length()).trim();
-        String[] parts = content.split(" ", 2);
-        
-        if (parts.length < 2 || parts[0].trim().isEmpty() || parts[1].trim().isEmpty()) {
-            System.err.println("!!! Cú pháp: /whisper <username> <message>");
-            return;
+            @Override public void onDisconnect() {
+                running = false;
+                System.out.println("\n*** Mất kết nối!");
+            }
+        });
+
+        client.connect(HOST, PORT);
+        System.out.println("Đã kết nối. Gõ tin nhắn hoặc lệnh:");
+        System.out.println("  /join <phòng>  |  /whisper <tên> <tin>  |  /quit");
+
+        // Join phòng mặc định
+        client.send(new Envelope(MessageType.JOIN_ROOM, room, name, null));
+
+        // Vòng lặp nhập
+        String line;
+        while (running && (line = console.readLine()) != null) {
+            if (line.isEmpty()) continue;
+
+            if (line.startsWith("/join ")) {
+                String newRoom = line.substring(6).trim();
+                client.send(new Envelope(MessageType.JOIN_ROOM, newRoom, name, null));
+                System.out.println("Đang vào phòng: " + newRoom);
+            }
+            else if (line.startsWith("/whisper ")) {
+                String rest = line.substring(9);
+                int space = rest.indexOf(' ');
+                if (space == -1) {
+                    System.out.println("Cú pháp: /whisper <tên> <tin>");
+                    continue;
+                }
+                String to = rest.substring(0, space);
+                String msg = rest.substring(space + 1);
+                Envelope dm = new Envelope(MessageType.PRIVATE_MESSAGE, null, name, msg);
+                dm.setReceiver(to);
+                client.send(dm);
+                System.out.println("[DM → " + to + "]: " + msg);
+            }
+            else if (line.equals("/quit")) {
+                break;
+            }
+            else {
+                client.send(new Envelope(MessageType.CHAT_MESSAGE, room, name, line));
+            }
         }
 
-        String recipient = parts[0].trim();
-        String messageContent = parts[1].trim();
-
-        // Gửi tin nhắn riêng tư. roomId là PRIVATE, Content chứa người nhận + nội dung
-        client.send(new Message("PRIVATE", sender, recipient + " " + messageContent));
-        System.out.println(">>> Đã gửi tin nhắn riêng tới " + recipient + ".");
+        client.disconnect();
     }
 }

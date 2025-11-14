@@ -1,0 +1,5 @@
+AuthContext --> lưu thông tin user, token đăng nhập.
+
+ThemeContext --> lưu theme sáng /tối.
+
+LanguageContext --> lưu ngôn ngữ giao diện
