@@ -2,6 +2,7 @@ package chat.server;
 
 import chat.core.ChatService;
 import chat.core.MessageListener;
+import chat.core.Message;
 import chat.core.spi.AuthGateway;
 import chat.core.spi.MessageStore;
 import chat.core.spi.RoomStore;
@@ -60,7 +61,6 @@ public class ChatServer extends ChatService{
             notifyError("Error stopping server: " + e.getMessage());
         }
         
-        
         for (ClientHandler client : clients) {
             client.disconnect();
         }
@@ -68,26 +68,24 @@ public class ChatServer extends ChatService{
         threadPool.shutdown();
     }
 
-    public void broadcastMessage(String message) {
+    public void broadcastMessage(Message message) {
         for (ClientHandler client : clients) {
             client.sendMessage(message);
         }
-        notifyMessage(message);
+        notifyMessage(message.getSender() + ": " + message.getContent());
     }
 
     public void notifyUserJoined(String username) {
-        // MessageListener does not define onUserJoined; reuse onMessageReceived to announce joins.
-        notifyMessage("User joined: " + username);
+        broadcastMessage(new Message("system", "SYSTEM", "" + username + " đã tham gia phòng chat!"));
     }
 
     public void notifyUserLeft(String username) {
-        // MessageListener does not define onUserLeft; reuse onMessageReceived to announce leaves.
-        notifyMessage("User left: " + username);
+        broadcastMessage(new Message("system", "SYSTEM", "" + username + " đã rời khỏi phòng chat!"));
     }
 
     private void notifyMessage(String message) {
         for (MessageListener listener : listeners) {
-            listener.onMessageReceived(message);
+            listener.onMessage(new Message("system", "SYSTEM", message));
         }
     }
 

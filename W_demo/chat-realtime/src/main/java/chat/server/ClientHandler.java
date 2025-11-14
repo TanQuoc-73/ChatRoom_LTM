@@ -1,13 +1,14 @@
 package chat.server;
 
+import chat.core.Message;
 import java.io.*;
 import java.net.*;
 import java.util.Set;
 
 class ClientHandler implements Runnable {
     private Socket socket;
-    private BufferedReader reader;
-    private PrintWriter writer;
+    private ObjectInputStream in;
+    private ObjectOutputStream out;
     private Set<ClientHandler> clients;
     private ChatServer server;
     private String username;
@@ -16,44 +17,46 @@ class ClientHandler implements Runnable {
         this.socket = socket;
         this.clients = clients;
         this.server = server;
-        this.reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-        this.writer = new PrintWriter(socket.getOutputStream(), true);
+        this.out = new ObjectOutputStream(socket.getOutputStream());
+        this.out.flush();
+        this.in = new ObjectInputStream(socket.getInputStream());
     }
 
     @Override
     public void run() {
         try {
-            writer.println("ENTER_USERNAME");
-            username = reader.readLine();
-            
-            if (username != null && !username.trim().isEmpty()) {
-                server.notifyUserJoined(username);
-                server.broadcastMessage("SYSTEM: " + username + " đã tham gia phòng chat!");
-
-                String message;
-                while ((message = reader.readLine()) != null) {
-                    if (message.equalsIgnoreCase("exit")) break;
-                    
-                    // Gửi tin nhắn đến tất cả client
-                    server.broadcastMessage(username + ": " + message);
+            while (true) {
+                Object obj = in.readObject();
+                if (!(obj instanceof Message)) continue;
+                Message msg = (Message) obj;
+                if (username == null || username.isEmpty()) {
+                    username = msg.getSender();
+                    if (username != null && !username.trim().isEmpty()) {
+                        server.notifyUserJoined(username);
+                    }
                 }
+                server.broadcastMessage(msg);
             }
-        } catch (IOException e) {
+        } catch (IOException | ClassNotFoundException e) {
             System.out.println("Client error: " + e.getMessage());
         } finally {
             disconnect();
         }
     }
 
-    public void sendMessage(String message) {
-        writer.println(message);
+    public void sendMessage(Message message) {
+        try {
+            out.writeObject(message);
+            out.flush();
+        } catch (IOException e) {
+            // ignore per-connection send error
+        }
     }
 
     public void disconnect() {
         try {
             if (username != null) {
                 server.notifyUserLeft(username);
-                server.broadcastMessage("SYSTEM: " + username + " đã rời khỏi phòng chat!");
             }
             clients.remove(this);
             if (socket != null) socket.close();
@@ -64,5 +67,10 @@ class ClientHandler implements Runnable {
 
     public String getUsername() {
         return username;
+    }
+
+    // Backward-compatible helper for places that send plain text
+    public void sendMessage(String text) {
+        sendMessage(new Message("system", "SYSTEM", text));
     }
 }
