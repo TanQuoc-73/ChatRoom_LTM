@@ -1,10 +1,9 @@
 package chat.client;
 
-import chat.core.Message;
-import chat.core.MessageListener;
-
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+
+import chat.core.Message;
 
 public class ClientLauncher {
     public static void main(String[] args) throws Exception {
