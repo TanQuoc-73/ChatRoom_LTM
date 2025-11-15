@@ -2,9 +2,11 @@ package chat.server;
 
 import chat.core.Message;
 import chat.core.MessageListener;
+
 import chat.core.protocol.Envelope;
 import chat.core.protocol.MessageType;
 import chat.core.protocol.Events;
+
 import java.io.*;
 import java.net.*;
 import java.util.Set;
@@ -34,12 +36,15 @@ class ClientHandler implements Runnable, MessageListener {
                 if (!(obj instanceof Envelope)) continue;
                 Envelope env = (Envelope) obj;
 
-                // First-time association and login
                 if (username == null || username.isEmpty()) {
                     username = env.getSender();
                     if (username != null && !username.trim().isEmpty()) {
-                        // Authenticate and register this handler as a session listener
-                        boolean ok = server.login(username, "", this);
+                        String token = null;
+                        if (env.getMetadata() != null) {
+                            Object t = env.getMetadata().get("token");
+                            if (t != null) token = t.toString();
+                        }
+                        boolean ok = server.login(username, token == null ? "" : token, this);
                         if (!ok) {
                             onError("Authentication failed");
                             break;
@@ -50,7 +55,7 @@ class ClientHandler implements Runnable, MessageListener {
                     }
                 }
 
-                // Route according to protocol
+
                 if (env.getType() == MessageType.JOIN_ROOM) {
                     server.joinRoom(username, env.getRoomId());
                 } else if (env.getType() == MessageType.LEAVE_ROOM) {
@@ -71,7 +76,7 @@ class ClientHandler implements Runnable, MessageListener {
             out.writeObject(message);
             out.flush();
         } catch (IOException e) {
-            // ignore per-connection send error
+      
         }
     }
 
@@ -91,12 +96,10 @@ class ClientHandler implements Runnable, MessageListener {
         return username;
     }
 
-    // Backward-compatible helper for places that send plain text
     public void sendMessage(String text) {
         sendMessage(new Message("system", "SYSTEM", text));
     }
 
-    // MessageListener implementation
     @Override
     public void onMessage(Message message) {
         sendMessage(message);
@@ -104,7 +107,6 @@ class ClientHandler implements Runnable, MessageListener {
 
     @Override
     public void onEvent(Object event) {
-        // Convert protocol events to serializable Message payloads
         if (event instanceof Events.UserJoined e) {
             sendMessage(new Message(e.roomId, "SYSTEM", e.username + " joined"));
             return;
