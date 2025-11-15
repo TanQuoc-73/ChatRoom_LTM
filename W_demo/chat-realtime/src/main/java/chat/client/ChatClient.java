@@ -44,6 +44,8 @@ public class ChatClient {
                 handle(env);
             }
         } catch (Exception e) {
+            // Temporary debug to understand disconnect cause
+            e.printStackTrace();
             listeners.forEach(MessageListener::onDisconnect);
         }
     }
@@ -59,9 +61,14 @@ public class ChatClient {
                     Message m = new Message("DM", env.getSender(), env.getPayload());
                     l.onMessage(m);
                 }
+                case JOIN_ROOM -> l.onEvent(new Events.UserJoined(env.getRoomId(), env.getSender()));
+                case LEAVE_ROOM -> l.onEvent(new Events.UserLeft(env.getRoomId(), env.getSender()));
                 case USER_JOINED -> l.onEvent(new Events.UserJoined(env.getRoomId(), env.getSender()));
                 case USER_LEFT -> l.onEvent(new Events.UserLeft(env.getRoomId(), env.getSender()));
+                case TYPING -> l.onEvent(new Events.UserTyping(env.getRoomId(), env.getSender(), true));
+                case STOP_TYPING -> l.onEvent(new Events.UserTyping(env.getRoomId(), env.getSender(), false));
                 case ERROR -> l.onError(env.getPayload());
+                case ACK -> l.onAck(env.getPayload());
             }
         }
     }

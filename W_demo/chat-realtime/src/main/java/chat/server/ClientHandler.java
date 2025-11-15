@@ -73,10 +73,16 @@ class ClientHandler implements Runnable, MessageListener {
 
     public void sendMessage(Message message) {
         try {
-            out.writeObject(message);
+            Envelope env = new Envelope(
+                    MessageType.CHAT_MESSAGE,
+                    message.getRoomId(),
+                    message.getSender(),
+                    message.getContent()
+            );
+            out.writeObject(env);
             out.flush();
         } catch (IOException e) {
-      
+            
         }
     }
 
@@ -107,25 +113,33 @@ class ClientHandler implements Runnable, MessageListener {
 
     @Override
     public void onEvent(Object event) {
-        if (event instanceof Events.UserJoined e) {
-            sendMessage(new Message(e.roomId, "SYSTEM", e.username + " joined"));
-            return;
+        try {
+            Envelope env;
+            if (event instanceof Events.UserJoined e) {
+                env = new Envelope(MessageType.USER_JOINED, e.roomId, e.username, null);
+            } else if (event instanceof Events.UserLeft e) {
+                env = new Envelope(MessageType.USER_LEFT, e.roomId, e.username, null);
+            } else if (event instanceof Events.UserTyping e) {
+                env = new Envelope(e.typing ? MessageType.TYPING : MessageType.STOP_TYPING, e.roomId, e.username, null);
+            } else {
+                env = new Envelope(MessageType.ERROR, "system", "SYSTEM", "Unsupported event: " + event.getClass().getSimpleName());
+            }
+            out.writeObject(env);
+            out.flush();
+        } catch (IOException ioe) {
+            
         }
-        if (event instanceof Events.UserLeft e) {
-            sendMessage(new Message(e.roomId, "SYSTEM", e.username + " left"));
-            return;
-        }
-        if (event instanceof Events.UserTyping e) {
-            sendMessage(new Message(e.roomId, "SYSTEM", e.username + (e.typing ? " is typing..." : " stopped typing")));
-            return;
-        }
-        // Fallback generic event
-        sendMessage(new Message("system", "SYSTEM", "EVENT:" + event.getClass().getSimpleName()));
     }
 
     @Override
     public void onError(String error) {
-        sendMessage(new Message("system", "SYSTEM", error));
+        try {
+            Envelope env = new Envelope(MessageType.ERROR, "system", "SYSTEM", error);
+            out.writeObject(env);
+            out.flush();
+        } catch (IOException e) {
+            
+        }
     }
 
     @Override

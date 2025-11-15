@@ -7,6 +7,7 @@ import chat.core.Message;
 import chat.core.spi.AuthGateway;
 import chat.core.spi.MessageStore;
 import chat.core.spi.RoomStore;
+
 import chat.core.protocol.Envelope;
 import chat.core.protocol.MessageType;
 
