@@ -1,17 +1,11 @@
 package chat.client;
 
-import chat.core.Message;
-import chat.core.MessageListener;
-import chat.core.protocol.Envelope;
-import chat.core.protocol.MessageType;
-import chat.core.protocol.Events;
-
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
-/**
- * Console Client - Chỉ chat, join, whisper, quit
- */
+import chat.core.Message;
+
+
 public class ClientLauncher {
     private static final String HOST = "localhost";
     private static final int PORT = 8080;
