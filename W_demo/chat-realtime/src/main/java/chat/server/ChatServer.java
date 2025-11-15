@@ -3,9 +3,13 @@ package chat.server;
 import chat.core.ChatService;
 import chat.core.MessageListener;
 import chat.core.Message;
+
 import chat.core.spi.AuthGateway;
 import chat.core.spi.MessageStore;
 import chat.core.spi.RoomStore;
+import chat.core.protocol.Envelope;
+import chat.core.protocol.MessageType;
+
 import java.io.*;
 import java.net.*;
 import java.util.*;
@@ -69,9 +73,13 @@ public class ChatServer extends ChatService{
     }
 
     public void broadcastMessage(Message message) {
-        for (ClientHandler client : clients) {
-            client.sendMessage(message);
-        }
+        Envelope env = new Envelope(
+                MessageType.CHAT_MESSAGE,
+                message.getRoomId(),
+                message.getSender(),
+                message.getContent()
+        );
+        sendMessage(env);
         notifyMessage(message.getSender() + ": " + message.getContent());
     }
 
@@ -105,7 +113,6 @@ public class ChatServer extends ChatService{
     public void sendMessage(String message) {}
     public void disconnect() {}
 
-    // ----- Simple in-memory SPI implementations for convenience -----
     private static class InMemoryAuth implements AuthGateway {
         @Override
         public boolean authenticate(String username, String password) {
