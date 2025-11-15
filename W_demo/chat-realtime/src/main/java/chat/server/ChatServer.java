@@ -2,9 +2,14 @@ package chat.server;
 
 import chat.core.ChatService;
 import chat.core.MessageListener;
+import chat.core.Message;
+
 import chat.core.spi.AuthGateway;
 import chat.core.spi.MessageStore;
 import chat.core.spi.RoomStore;
+import chat.core.protocol.Envelope;
+import chat.core.protocol.MessageType;
+
 import java.io.*;
 import java.net.*;
 import java.util.*;
@@ -60,7 +65,6 @@ public class ChatServer extends ChatService{
             notifyError("Error stopping server: " + e.getMessage());
         }
         
-        
         for (ClientHandler client : clients) {
             client.disconnect();
         }
@@ -68,26 +72,28 @@ public class ChatServer extends ChatService{
         threadPool.shutdown();
     }
 
-    public void broadcastMessage(String message) {
-        for (ClientHandler client : clients) {
-            client.sendMessage(message);
-        }
-        notifyMessage(message);
+    public void broadcastMessage(Message message) {
+        Envelope env = new Envelope(
+                MessageType.CHAT_MESSAGE,
+                message.getRoomId(),
+                message.getSender(),
+                message.getContent()
+        );
+        sendMessage(env);
+        notifyMessage(message.getSender() + ": " + message.getContent());
     }
 
     public void notifyUserJoined(String username) {
-        // MessageListener does not define onUserJoined; reuse onMessageReceived to announce joins.
-        notifyMessage("User joined: " + username);
+        broadcastMessage(new Message("system", "SYSTEM", "" + username + " đã tham gia phòng chat!"));
     }
 
     public void notifyUserLeft(String username) {
-        // MessageListener does not define onUserLeft; reuse onMessageReceived to announce leaves.
-        notifyMessage("User left: " + username);
+        broadcastMessage(new Message("system", "SYSTEM", "" + username + " đã rời khỏi phòng chat!"));
     }
 
     private void notifyMessage(String message) {
         for (MessageListener listener : listeners) {
-            listener.onMessageReceived(message);
+            listener.onMessage(new Message("system", "SYSTEM", message));
         }
     }
 
@@ -107,7 +113,6 @@ public class ChatServer extends ChatService{
     public void sendMessage(String message) {}
     public void disconnect() {}
 
-    // ----- Simple in-memory SPI implementations for convenience -----
     private static class InMemoryAuth implements AuthGateway {
         @Override
         public boolean authenticate(String username, String password) {

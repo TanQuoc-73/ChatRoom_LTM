@@ -1,6 +1,7 @@
 package chat.server;
 
 import chat.core.MessageListener;
+import chat.core.Message;
 
 import java.util.Scanner;
 
@@ -11,18 +12,8 @@ public class ServerLauncher {
 
         server.addMessageListener(new MessageListener() {
             @Override
-            public void onMessageReceived(String message) {
+            public void onMessage(Message message) {
                 System.out.println("[SERVER LOG] " + message);
-            }
-
-            @Override
-            public void onUserJoined(String username) {
-                System.out.println("[JOIN] " + username + " đã vào phòng.");
-            }
-
-            @Override
-            public void onUserLeft(String username) {
-                System.out.println("[LEAVE] " + username + " đã rời khỏi phòng.");
             }
 
             @Override

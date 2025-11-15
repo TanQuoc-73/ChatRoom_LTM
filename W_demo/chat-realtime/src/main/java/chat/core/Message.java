@@ -1,8 +1,10 @@
 package chat.core;
 
+import java.io.Serializable;
 import java.util.Objects;
 
-public class Message {
+public class Message implements Serializable {
+    private static final long serialVersionUID = 1L;
     private final String id;
     private final String roomId;
     private final String sender;
