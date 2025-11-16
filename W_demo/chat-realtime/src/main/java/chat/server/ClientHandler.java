@@ -1,149 +1,143 @@
 package chat.server;
 
-import chat.core.Message;
-import chat.core.MessageListener;
-
-import chat.core.protocol.Envelope;
-import chat.core.protocol.MessageType;
-import chat.core.protocol.Events;
-
 import java.io.*;
-import java.net.*;
-import java.util.Set;
+import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 
 class ClientHandler implements Runnable, MessageListener {
     private Socket socket;
-    private ObjectInputStream in;
-    private ObjectOutputStream out;
+    private BufferedReader reader;
+    private PrintWriter writer;
     private Set<ClientHandler> clients;
     private ChatServer server;
+    private ChatService chatService;
     private String username;
+    private final ObjectMapper mapper = new ObjectMapper();
+    private volatile boolean connected = false;
 
-    public ClientHandler(Socket socket, Set<ClientHandler> clients, ChatServer server) throws IOException {
+    public ClientHandler(Socket socket, ChatServer server, ChatService chatService) throws IOException {
         this.socket = socket;
-        this.clients = clients;
         this.server = server;
-        this.out = new ObjectOutputStream(socket.getOutputStream());
-        this.out.flush();
-        this.in = new ObjectInputStream(socket.getInputStream());
+        this.reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        this.writer = new PrintWriter(socket.getOutputStream(), true);
     }
 
     @Override
     public void run() {
         try {
-            while (true) {
-                Object obj = in.readObject();
-                if (!(obj instanceof Envelope)) continue;
-                Envelope env = (Envelope) obj;
+            writer.println("ENTER_USERNAME");
+            username = reader.readLine();
+            
+            if (username != null && !username.trim().isEmpty()) {
+                server.notifyUserJoined(username);
+                server.broadcastMessage("SYSTEM: " + username + " đã tham gia phòng chat!");
 
-                if (username == null || username.isEmpty()) {
-                    username = env.getSender();
-                    if (username != null && !username.trim().isEmpty()) {
-                        String token = null;
-                        if (env.getMetadata() != null) {
-                            Object t = env.getMetadata().get("token");
-                            if (t != null) token = t.toString();
-                        }
-                        boolean ok = server.login(username, token == null ? "" : token, this);
-                        if (!ok) {
-                            onError("Authentication failed");
-                            break;
-                        }
-                    } else {
-                        onError("Missing username");
-                        break;
-                    }
-                }
-
-
-                if (env.getType() == MessageType.JOIN_ROOM) {
-                    server.joinRoom(username, env.getRoomId());
-                } else if (env.getType() == MessageType.LEAVE_ROOM) {
-                    server.leaveRoom(username, env.getRoomId());
-                } else {
-                    server.sendMessage(env);
+                String message;
+                while ((message = reader.readLine()) != null) {
+                    if (message.equalsIgnoreCase("exit")) break;
+                    
+                    server.broadcastMessage(username + ": " + message);
                 }
             }
-        } catch (IOException | ClassNotFoundException e) {
+        } catch (IOException e) {
             System.out.println("Client error: " + e.getMessage());
         } finally {
             disconnect();
         }
     }
 
-    public void sendMessage(Message message) {
-        try {
-            Envelope env = new Envelope(
-                    MessageType.CHAT_MESSAGE,
-                    message.getRoomId(),
-                    message.getSender(),
-                    message.getContent()
-            );
-            out.writeObject(env);
-            out.flush();
-        } catch (IOException e) {
-            
-        }
-    }
-
-    public void disconnect() {
-        try {
-            if (username != null) {
-                server.logout(username);
-            }
-            clients.remove(this);
-            if (socket != null) socket.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void sendMessage(String text) {
-        sendMessage(new Message("system", "SYSTEM", text));
-    }
-
-    @Override
-    public void onMessage(Message message) {
-        sendMessage(message);
+    public void sendMessage(String message) {
+        writer.println(message);
     }
 
     @Override
     public void onEvent(Object event) {
         try {
-            Envelope env;
             if (event instanceof Events.UserJoined e) {
-                env = new Envelope(MessageType.USER_JOINED, e.roomId, e.username, null);
+                Envelope env = new Envelope(MessageType.USER_JOINED, e.roomId, e.username, "joined");
+                sendEnvelope(env);
+
             } else if (event instanceof Events.UserLeft e) {
-                env = new Envelope(MessageType.USER_LEFT, e.roomId, e.username, null);
+                Envelope env = new Envelope(MessageType.USER_LEFT, e.roomId, e.username, "left");
+                sendEnvelope(env);
+
             } else if (event instanceof Events.UserTyping e) {
-                env = new Envelope(e.typing ? MessageType.TYPING : MessageType.STOP_TYPING, e.roomId, e.username, null);
+                MessageType type = e.typing ? MessageType.TYPING : MessageType.STOP_TYPING;
+                Envelope env = new Envelope(type, e.roomId, e.username, "");
+                sendEnvelope(env);
+
             } else {
-                env = new Envelope(MessageType.ERROR, "system", "SYSTEM", "Unsupported event: " + event.getClass().getSimpleName());
+                System.out.println("Unhandled event type: " + event.getClass().getSimpleName());
             }
-            out.writeObject(env);
-            out.flush();
-        } catch (IOException ioe) {
-            
+        } catch (Exception e) {
+            System.err.println("Error sending event: " + e.getMessage());
         }
     }
 
     @Override
     public void onError(String error) {
-        try {
-            Envelope env = new Envelope(MessageType.ERROR, "system", "SYSTEM", error);
-            out.writeObject(env);
-            out.flush();
-        } catch (IOException e) {
-            
-        }
+        sendError(error);
     }
 
     @Override
     public void onDisconnect() {
+        // Core thông báo yêu cầu disconnect
+        System.out.println("Core requested disconnect for: " + username);
         disconnect();
+    }
+
+    @Override
+    public void onAck(String ackData) {
+        sendEnvelope(new Envelope(MessageType.ACK, null, "system", ackData));
+    }
+
+    // Gửi envelope dạng JSON về client
+    void sendEnvelope(Envelope envelope) {
+        if (!connected || socket.isClosed()) return;
+        
+        try {
+            String json = mapper.writeValueAsString(envelope);
+            synchronized (writer) {
+                writer.write(json);
+                writer.write("\n");
+                writer.flush();
+            }
+        } catch (IOException e) {
+            System.err.println("Failed to send message to " + username + ": " + e.getMessage());
+            disconnect();
+        }
+    }
+
+    private void sendError(String error) {
+        sendEnvelope(new Envelope(MessageType.ERROR, null, "system", error));
+    }
+
+    private void sendAck(String message) {
+        sendEnvelope(new Envelope(MessageType.ACK, null, "system", message));
+    }
+
+    // Dọn dẹp kết nối client
+    public void disconnect() {
+        if (!connected) return;
+        
+        connected = false;
+        System.out.println("Disconnecting client: " + username);
+        
+        try {
+            if (username != null) {
+                server.notifyUserLeft(username);
+                server.broadcastMessage("SYSTEM: " + username + " đã rời khỏi phòng chat!");
+            }
+            
+            server.removeClient(this);
+            
+        } catch (Exception e) {
+            System.err.println("Error during client disconnect: " + e.getMessage());
+        }
+    }
+
+
+    public String getUsername() {
+        return username;
     }
 }
