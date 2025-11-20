@@ -8,4 +8,5 @@ import java.util.Optional;
 public interface UserSessionRepository extends JpaRepository<UserSession, Long> {
     Optional<UserSession> findBySessionToken(String token);
     List<UserSession> findByUserIdAndOnlineTrue(Long userId);
+    Optional<UserSession> findBySessionTokenAndOnlineTrue(String sessionToken);
 }

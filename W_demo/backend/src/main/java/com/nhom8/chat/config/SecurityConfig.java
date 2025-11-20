@@ -12,6 +12,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.cors.CorsConfigurationSource;
+import com.nhom8.chat.security.SessionTokenFilter;
 
 import java.util.List;
 
@@ -24,20 +25,16 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder(12);
     }
 @Bean
-public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+public SecurityFilterChain filterChain(HttpSecurity http, SessionTokenFilter filter) throws Exception {
     http
-        .csrf(csrf -> csrf.disable())                       // tắt CSRF cho REST
-        .cors(Customizer.withDefaults())                    // bật CORS (cấu hình ở dưới)
-        .sessionManagement(sm -> sm
-            .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+        .csrf(csrf -> csrf.disable())
+        .cors(Customizer.withDefaults())
+        .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/auth/**").permitAll()
+                .anyRequest().authenticated()
         )
-.authorizeHttpRequests(auth -> auth
-    .requestMatchers("/auth/**").permitAll()
-    .requestMatchers("/users/**").permitAll()
-    .requestMatchers("/**").permitAll() // dev: cho tất cả /: bạn có thể thu hẹp lại
-    .anyRequest().authenticated()
-);
-
+        .addFilterBefore(filter, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class);
 
     return http.build();
 }
