@@ -3,8 +3,8 @@ fe: Nextjs
 
     [!NOTE]
     ###Programing Languages:
-        - Java 21.0.7
-        - Node v22.13.0
+        - Java 17.0.12
+        - Node v24.11.1
         - Pnpm 10.12.3
         
     ###Extension:
