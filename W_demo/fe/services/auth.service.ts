@@ -172,7 +172,13 @@ export const AuthService = {
         },
       });
 
-      return await response.json();
+      const data: AuthResponse = await response.json();
+      
+      if (data.success && data.userId && data.username) {
+        SessionManager.setUserInfo(data.userId, data.username, data.displayName);
+      }
+      
+      return data;
     } catch (error) {
       SessionManager.removeToken();
       return null;

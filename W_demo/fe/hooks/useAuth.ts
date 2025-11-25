@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { AuthService } from '@/services/auth.service';
-import { isValidEmail, isValidPassword } from '@/lib/utils/session';
+import { isValidEmail, isValidPassword, SessionManager } from '@/lib/utils/session';
 
 interface UseAuthReturn {
   isLoading: boolean;
@@ -20,7 +20,12 @@ interface UseAuthReturn {
 export const useAuth = (): UseAuthReturn => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [token, setToken] = useState<string | null>(null);
+  const [token, setToken] = useState<string | null>(() => {
+    if (typeof window !== 'undefined') {
+      return SessionManager.getToken();
+    }
+    return null;
+  });
 
   const clearError = () => setError(null);
 
