@@ -14,10 +14,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String,Object>> handleAll(Exception ex) {
-        // log full stacktrace to console/log file
         log.error("Unhandled exception caught by GlobalExceptionHandler", ex);
 
-        // DEV: return minimal message (can include ex.getMessage())
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of(
                         "timestamp", Instant.now().toString(),

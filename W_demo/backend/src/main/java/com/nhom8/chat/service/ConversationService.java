@@ -19,9 +19,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.util.Optional;
 
-/**
- * ConversationService - quản lý tạo/sửa/xóa conversation và quản lý thành viên
- */
 @Service
 @RequiredArgsConstructor
 public class ConversationService {
@@ -30,17 +27,10 @@ public class ConversationService {
     private final ConversationMemberRepository memberRepo;
     private final AppUserRepository userRepo;
 
-    /**
-     * Tạo conversation mới. Creator sẽ được thêm làm CREATOR member.
-     *
-     * @param req creator request (type as String, name, description, isPublic, maxMembers)
-     * @param creatorId id người tạo
-     * @return saved Conversation
-     */
     @Transactional
     public Conversation createConversation(ConversationCreateRequest req, Long creatorId) {
         AppUser creator = userRepo.findById(creatorId)
-                .orElseThrow(() -> new IllegalArgumentException("Creator user not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Ko thấy người dùng"));
 
         ConversationType typeEnum = parseTypeOrDefault(req.getType(), ConversationType.GROUP);
 
@@ -60,7 +50,6 @@ public class ConversationService {
 
         Conversation saved = convRepo.save(conv);
 
-        // add creator as CREATOR
         ConversationMember cm = ConversationMember.builder()
                 .id(new ConversationMemberId(saved.getId(), creator.getId()))
                 .conversation(saved)
@@ -76,18 +65,13 @@ public class ConversationService {
         return saved;
     }
 
-    /**
-     * Update conversation (name/description/isPublic/maxMembers/type)
-     * Only CREATOR or ADMIN can update.
-     */
     @Transactional
     public Conversation updateConversation(Long conversationId, ConversationCreateRequest req, Long actorId) {
         Conversation conv = convRepo.findById(conversationId)
-                .orElseThrow(() -> new IllegalArgumentException("Conversation not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy cuộc trò chuyện"));
 
-        // permission check
         if (!isCreatorOrAdmin(conversationId, actorId)) {
-            throw new SecurityException("Not allowed to update conversation");
+            throw new SecurityException("ko update nổi");
         }
 
         if (req.getType() != null) {
@@ -102,52 +86,40 @@ public class ConversationService {
         return convRepo.save(conv);
     }
 
-    /**
-     * Delete conversation - only CREATOR can delete.
-     */
     @Transactional
     public void deleteConversation(Long conversationId, Long actorId) {
         Conversation conv = convRepo.findById(conversationId)
-                .orElseThrow(() -> new IllegalArgumentException("Conversation not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy cuộc trò chuyện"));
 
-        // only creator can delete
         ConversationMemberId id = new ConversationMemberId(conversationId, actorId);
         Optional<ConversationMember> actorMember = memberRepo.findById(id);
         if (actorMember.isEmpty() || !"CREATOR".equals(actorMember.get().getRole())) {
-            throw new SecurityException("Only creator can delete conversation");
+            throw new SecurityException("Chỉ người tạo mới có thể xóa");
         }
 
         convRepo.delete(conv);
     }
 
-    /**
-     * Add member into conversation. Actor must be CREATOR or ADMIN.
-     */
     @Transactional
     public void addMember(Long conversationId, AddMemberRequest req, Long actorId) {
-        // basic validation
         Conversation conv = convRepo.findById(conversationId)
-                .orElseThrow(() -> new IllegalArgumentException("Conversation not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy cuộc trò chuyện"));
 
         AppUser userToAdd = userRepo.findById(req.getUserId())
-                .orElseThrow(() -> new IllegalArgumentException("User to add not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy người dùng để thêm"));
 
-        // permission: actor must be in room and admin/creator
         if (!isCreatorOrAdmin(conversationId, actorId)) {
-            throw new SecurityException("Not allowed to add members");
+            throw new SecurityException("Không được phép thêm thành viên");
         }
 
-        // check max members
         Long max = conv.getMaxMembers() == null ? Long.MAX_VALUE : conv.getMaxMembers().longValue();
         long currentCount = memberRepo.countByIdConversationId(conversationId);
         if (currentCount >= max) {
-            throw new IllegalStateException("Conversation is full");
+            throw new IllegalStateException("Full òi");
         }
 
-        // if already member, ignore or throw
         ConversationMemberId cmId = new ConversationMemberId(conversationId, userToAdd.getId());
         if (memberRepo.existsById(cmId)) {
-            // already member - update role/nickname if provided
             ConversationMember existing = memberRepo.findById(cmId).get();
             if (req.getRole() != null) existing.setRole(req.getRole());
             if (req.getNickname() != null) existing.setNickname(req.getNickname());
@@ -167,69 +139,48 @@ public class ConversationService {
 
         memberRepo.save(cm);
 
-        // update last activity on conversation
         conv.setLastActivity(Instant.now());
         convRepo.save(conv);
     }
 
-    /**
-     * Remove member. Actor must be CREATOR or ADMIN or the member himself.
-     */
     @Transactional
     public void removeMember(Long conversationId, Long removeUserId, Long actorId) {
         Conversation conv = convRepo.findById(conversationId)
-                .orElseThrow(() -> new IllegalArgumentException("Conversation not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy cuộc trò chuyện"));
 
         ConversationMemberId removeId = new ConversationMemberId(conversationId, removeUserId);
         if (!memberRepo.existsById(removeId)) {
-            throw new IllegalArgumentException("Member not found in conversation");
+            throw new IllegalArgumentException("Không tìm thấy thành viên trong cuộc trò chuyện");
         }
 
-        // actor allowed if CREATOR or ADMIN or removing self
         boolean actorIsSelf = actorId.equals(removeUserId);
         boolean actorIsAdminOrCreator = isCreatorOrAdmin(conversationId, actorId);
 
         if (!actorIsSelf && !actorIsAdminOrCreator) {
-            throw new SecurityException("Not allowed to remove member");
+            throw new SecurityException("Không được phép xóa thành viên");
         }
 
         memberRepo.deleteById(removeId);
 
-        // update conversation lastActivity
         conv.setLastActivity(Instant.now());
         convRepo.save(conv);
     }
 
-    /**
-     * Get conversation by id (readonly)
-     */
     @Transactional(readOnly = true)
     public Conversation getConversation(Long id) {
-        return convRepo.findById(id).orElseThrow(() -> new IllegalArgumentException("Conversation not found"));
+        return convRepo.findById(id).orElseThrow(() -> new IllegalArgumentException("Không tìm thấy cuộc trò chuyện"));
     }
 
-    /**
-     * List conversations for a member (paged)
-     */
     @Transactional(readOnly = true)
     public Page<Conversation> listConversationsForMember(Long userId, Pageable pageable) {
         return convRepo.findAllByMember(userId, pageable);
     }
 
-    /**
-     * Search conversations by keyword
-     */
     @Transactional(readOnly = true)
     public Page<Conversation> search(String keyword, Pageable pageable) {
-        // simple approach: reuse searchConversations (list) and convert to page manually is possible,
-        // but we already have findBy...; for simplicity return a page via repository search (if implemented).
-        // Here fallback: use repository.searchConversations and create a Page manually if needed.
-        throw new UnsupportedOperationException("Use repository.searchConversations(...) or implement paging search");
+        throw new UnsupportedOperationException("thử tìm kiêm phân trang");
     }
 
-    // -------------------------
-    // Helper methods
-    // -------------------------
     private ConversationType parseTypeOrDefault(String t, ConversationType def) {
         if (t == null) return def;
         try {

@@ -26,12 +26,10 @@ public class UserService {
     private final UserCoverPhotoRepository userCoverPhotoRepository;
     private final MediaRepository mediaRepository;
 
-    // Lấy thông tin profile user
     public UserProfileDTO getUserProfile(Long userId) {
         AppUser user = appUserRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Không thấy người dùng"));
 
-        // Lấy avatar hiện tại
         Optional<UserAvatar> currentAvatar = userAvatarRepository.findFirstByUserIdAndCurrentTrue(userId);
         Optional<UserCoverPhoto> currentCover = userCoverPhotoRepository.findFirstByUserIdAndCurrentTrue(userId);
 
@@ -53,12 +51,10 @@ public class UserService {
                 .build();
     }
 
-    // Cập nhật thông tin profile
     public UserProfileDTO updateProfile(Long userId, UpdateProfileRequest request) {
         AppUser user = appUserRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Không thấy người dùng"));
 
-        // Cập nhật các field được phép thay đổi
         if (request.getDisplayName() != null) {
             user.setDisplayName(request.getDisplayName());
         }
@@ -87,18 +83,16 @@ public class UserService {
         return getUserProfile(userId);
     }
 
-    // Đổi avatar
 public UserProfileDTO updateAvatar(Long userId, Long mediaId) {
-    // Lấy user và media entities
-    AppUser user = appUserRepository.findById(userId)
-            .orElseThrow(() -> new IllegalArgumentException("User not found"));
-    Media media = mediaRepository.findById(mediaId)
-            .orElseThrow(() -> new IllegalArgumentException("Media not found"));
 
-    // Set tất cả avatar cũ thành không current
+    AppUser user = appUserRepository.findById(userId)
+            .orElseThrow(() -> new IllegalArgumentException("Không thấy người dùng"));
+    Media media = mediaRepository.findById(mediaId)
+            .orElseThrow(() -> new IllegalArgumentException("Không thấy Media"));
+
     userAvatarRepository.setAllAvatarsNotCurrent(userId);
 
-    // Tạo avatar mới 
+
     UserAvatar newAvatar = new UserAvatar();
     newAvatar.setUser(user);       
     newAvatar.setMedia(media);
@@ -111,14 +105,12 @@ public UserProfileDTO updateAvatar(Long userId, Long mediaId) {
 
 public UserProfileDTO updateCoverPhoto(Long userId, Long mediaId) {
     AppUser user = appUserRepository.findById(userId)
-            .orElseThrow(() -> new IllegalArgumentException("User not found"));
+            .orElseThrow(() -> new IllegalArgumentException("Không thấy người dùng"));
     Media media = mediaRepository.findById(mediaId)
-            .orElseThrow(() -> new IllegalArgumentException("Media not found"));
+            .orElseThrow(() -> new IllegalArgumentException("Không thấy Media"));
 
-    // Set tất cả cover cũ thành không current
     userCoverPhotoRepository.setAllCoverPhotosNotCurrent(userId);
 
-    // Tạo cover mới 
     UserCoverPhoto newCover = new UserCoverPhoto();
     newCover.setUser(user);        
     newCover.setMedia(media);
@@ -129,7 +121,6 @@ public UserProfileDTO updateCoverPhoto(Long userId, Long mediaId) {
     return getUserProfile(userId);
 }
 
-    // Tìm user theo username
     public Optional<UserProfileDTO> findUserByUsername(String username) {
         return appUserRepository.findByUsername(username)
                 .map(user -> getUserProfile(user.getId()));

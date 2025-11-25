@@ -1,4 +1,3 @@
-// src/main/java/com/nhom8/chat/repository/ChatMessageRepository.java
 package com.nhom8.chat.repository;
 
 import com.nhom8.chat.entity.ChatMessage;

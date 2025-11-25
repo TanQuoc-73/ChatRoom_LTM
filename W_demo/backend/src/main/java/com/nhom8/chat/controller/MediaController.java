@@ -71,6 +71,6 @@ public class MediaController {
             var user = authService.validateSession(token);
             if (user.isPresent()) return user.get().getId();
         }
-        throw new IllegalArgumentException("Invalid or expired session token");
+        throw new IllegalArgumentException("token ko hợp lệ òi");
     }
 }

@@ -1,0 +1,230 @@
+/* Thiết lập cơ bản */
+body,
+html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: Arial, sans-serif;
+}
+
+/* Thiết lập cho Video nền */
+#myVideo {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  min-width: 100%;
+  min-height: 100%;
+  width: auto;
+  height: auto;
+  z-index: -100;
+  object-fit: cover;
+}
+
+/* Điều chỉnh lại Container chứa Form (CHUNG cho cả Đăng Ký và Đăng Nhập) */
+.container {
+  height: 100vh;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding-right: 15vw;
+  position: relative;
+  z-index: 10;
+}
+
+.signup-form-wrapper {
+  width: 350px;
+  max-width: 90%;
+  background-color: #ffffff84;
+  border: 4px solid #000;
+  border-radius: 20px;
+  box-shadow: 10px 10px 0px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+}
+
+.signup-header {
+  background-color: #f0f0f0;
+  color: #000;
+  font-size: 1.5em;
+  font-weight: bold;
+  text-align: center;
+  padding: 10px 0;
+  border-bottom: 4px solid #000;
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+}
+
+.signup-form {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.signup-form input[type="text"],
+.signup-form input[type="email"],
+.signup-form input[type="password"] {
+  padding: 10px;
+  border: 3px solid #000;
+  border-radius: 15px;
+  font-size: 1em;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.input-row.name-fields {
+  display: flex;
+  gap: 10px;
+}
+.input-row.name-fields .half-width-input {
+  flex: 1;
+}
+
+.input-row.gender-fields {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.input-row.gender-fields label {
+  font-weight: bold;
+}
+.input-row.gender-fields input[type="radio"] {
+  transform: scale(1.2);
+  margin-right: 5px;
+}
+
+.input-row.date-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.input-row.date-field input {
+  padding-right: 40px;
+}
+.calendar-icon {
+  position: absolute;
+  right: 15px;
+  font-size: 1.2em;
+  cursor: pointer;
+}
+
+.signup-button {
+  background-color: #e0e0e0;
+  color: #000;
+  border: 3px solid #000;
+  border-radius: 5px;
+  padding: 10px;
+  font-size: 1.2em;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 10px;
+  box-shadow: 4px 4px 0px #000;
+  transition: all 0.1s ease;
+}
+
+.signup-button:active {
+  box-shadow: 1px 1px 0px #000;
+  transform: translate(3px, 3px);
+}
+
+.login-link {
+  /* Link Đăng nhập trong form Đăng ký */
+  text-align: center;
+  font-size: 0.85em;
+  margin-top: 5px;
+  color: #555;
+}
+
+/* ----------------------------------------------- */
+/* 2. QUY TẮC RIÊNG CHO FORM ĐĂNG NHẬP (.login-...) */
+/* ----------------------------------------------- */
+
+.login-form-wrapper {
+  /* Khác với signup-form-wrapper: width nhỏ hơn, bo góc tròn hơn */
+  width: 300px;
+  max-width: 100%;
+  background-color: #ffffff84; /* Nền trắng đục hơn */
+  border: 4px solid #000;
+  border-radius: 15px;
+  box-shadow: 10px 10px 0px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+}
+
+.login-header {
+  /* Khác với signup-header: không có nền và border dưới */
+  background-color: transparent;
+  color: #000;
+  font-size: 1.8em;
+  font-weight: bold;
+  text-align: center;
+  padding: 20px 0 10px 0;
+}
+
+.login-form {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.login-form input[type="text"],
+.login-form input[type="password"] {
+  /* Khác với signup-form input: bo góc tròn hơn */
+  padding: 10px;
+  border: 3px solid #000;
+  border-radius: 20px;
+  font-size: 1em;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.input-row.password-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.input-row.password-field input {
+  padding-right: 45px;
+}
+.password-toggle {
+  position: absolute;
+  right: 15px;
+  font-size: 1.2em;
+  cursor: pointer;
+  color: #333;
+}
+
+.forgot-password {
+  text-align: right;
+  font-size: 0.8em;
+  color: #555;
+  margin-top: -10px;
+  cursor: pointer;
+}
+
+.login-button {
+  /* Khác với signup-button: bo góc tròn hơn */
+  background-color: #e0e0e0;
+  color: #000;
+  border: 3px solid #000;
+  border-radius: 20px;
+  padding: 10px;
+  font-size: 1.1em;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 5px;
+  box-shadow: 4px 4px 0px #000;
+  transition: all 0.1s ease;
+}
+
+.login-button:active {
+  box-shadow: 1px 1px 0px #000;
+  transform: translate(3px, 3px);
+}
+
+.signup-link {
+  /* Link Đăng ký trong form Đăng nhập */
+  text-align: center;
+  font-size: 0.85em;
+  margin-top: 5px;
+  color: #000;
+}

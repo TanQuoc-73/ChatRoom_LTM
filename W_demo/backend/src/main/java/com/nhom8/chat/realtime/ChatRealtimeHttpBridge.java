@@ -10,8 +10,8 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class ChatRealtimeHttpBridge implements ChatRealtimeBridge {
 
-    private final RestTemplate restTemplate; // configure bean
-    private final String realtimeBase = "http://localhost:9999/api/realtime"; // đổi theo env
+    private final RestTemplate restTemplate; 
+    private final String realtimeBase = "http://localhost:9000/api/realtime"; 
 
     @Override
     public void broadcastMessage(ChatMessage msg, String clientCid) {
@@ -26,8 +26,7 @@ public class ChatRealtimeHttpBridge implements ChatRealtimeBridge {
         try {
             restTemplate.postForObject(realtimeBase + "/message", body, Void.class);
         } catch (Exception e) {
-            // log lỗi, không throw để tránh rollback (tùy policy)
-            System.err.println("Realtime HTTP error: " + e.getMessage());
+            System.err.println("Realtime HTTP lỗi " + e.getMessage());
         }
     }
 
@@ -37,7 +36,7 @@ public class ChatRealtimeHttpBridge implements ChatRealtimeBridge {
         try {
             restTemplate.postForObject(realtimeBase + "/read", body, Void.class);
         } catch (Exception e) {
-            System.err.println("Realtime HTTP error: " + e.getMessage());
+            System.err.println("Realtime HTTP lỗi " + e.getMessage());
         }
     }
 }

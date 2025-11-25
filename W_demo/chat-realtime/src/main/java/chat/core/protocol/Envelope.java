@@ -28,7 +28,6 @@ public class Envelope implements Serializable {
         this.payload = payload;
     }
 
-    // Getters-Setters
     public MessageType getType() { return type; }
     public void setType(MessageType type) { this.type = type; }
 

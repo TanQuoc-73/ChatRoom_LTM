@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Đăng Nhập - Tái Tạo Ảnh Nền</title>
+    <link rel="stylesheet" href="/api/public/css/register.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdn-uicons.flaticon.com/uicons-solid-rounded/css/uicons-solid-rounded.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn-uicons.flaticon.com/uicons-regular-rounded/css/uicons-regular-rounded.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn-uicons.flaticon.com/uicons-bold-rounded/css/uicons-bold-rounded.css"
+    />
+  </head>
+  <body>
+    <video autoplay muted loop id="myVideo">
+      <source src="/api/public/background.mp4" type="video/mp4" />
+    </video>
+    <div class="container">
+      <div class="login-form-wrapper">
+        <div class="login-header">Đăng Nhập</div>
+
+        <form class="login-form">
+          <input type="text" placeholder="Tên đăng nhập" />
+
+          <div class="input-row password-field">
+            <input type="password" placeholder="Mật Khẩu" />
+            <span class="password-toggle"
+              ><i class="fi fi-sr-eye-crossed"></i
+            ></span>
+          </div>
+
+          <div class="forgot-password">Quên mật khẩu</div>
+
+          <button type="submit" class="login-button">Đăng nhập</button>
+
+          <div class="link">
+            <p>Chưa có tài khoản? <a href="register.html">Đăng ký ngay</a></p>
+          </div>
+        </form>
+      </div>
+    </div>
+    <script src="/api/public/js/login.js"></script>
+  </body>
+</html>

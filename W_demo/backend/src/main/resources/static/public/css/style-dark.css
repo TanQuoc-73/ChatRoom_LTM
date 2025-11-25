@@ -1,0 +1,251 @@
+/* ===========================
+   DARK THEME VARIABLES
+=========================== */
+:root {
+  --bg: #0e0f11;
+  --panel: #1a1b1e;
+  --panel-light: #222327;
+  --border: #2f3136;
+  --text: #e6e6e6;
+  --muted: #9a9a9a;
+  --icon: #f5f5f5;
+  --accent: #4ea3ff;
+}
+
+/* ===========================
+   BASE
+=========================== */
+* {
+  box-sizing: border-box;
+  font-family: "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* ===========================
+   TOP BAR
+=========================== */
+.topbar {
+  width: 100%;
+  height: 66px;
+  padding: 10px 22px;
+  display: flex;
+  align-items: center;
+  background: rgba(30, 30, 32, 0.65);
+  backdrop-filter: blur(6px);
+  border-bottom: 1px solid #272727;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
+}
+
+.top-inner {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 16px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* brand */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-mark {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: #ffffff15;
+  border: 2px solid #ffffff22;
+  color: white;
+  font-weight: 700;
+  font-size: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.brand-text {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+/* top icons */
+.nav-icons {
+  display: flex;
+  gap: 42px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.nav-btn {
+  width: 52px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: transparent;
+  border: 2px solid rgba(255, 255, 255, 0.12);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.nav-btn i {
+  font-size: 22px;
+  color: var(--icon);
+}
+
+.nav-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  transform: translateY(-2px);
+}
+
+/* extra button for theme toggle */
+.theme-toggle {
+  position: absolute;
+  right: 36px;
+  top: 16px;
+}
+
+/* ===========================
+   MAIN LAYOUT
+=========================== */
+.layout {
+  display: grid;
+  grid-template-columns: 300px 1fr 320px;
+  gap: 22px;
+  padding: 22px;
+}
+
+/* generic panel */
+.panel {
+  background: var(--panel);
+  border-radius: 28px;
+  padding: 16px;
+  border: 2px solid var(--border);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+}
+
+/* ===========================
+   LEFT SIDEBAR
+=========================== */
+.search-panel input {
+  width: 100%;
+  padding: 14px;
+  border-radius: 14px;
+  border: 2px solid #424242;
+  background: var(--panel-light);
+  color: var(--text);
+}
+
+.left-actions .btn {
+  width: 100%;
+  background: var(--panel-light);
+  border: 2px solid #3a3a3a;
+  padding: 12px;
+  border-radius: 14px;
+  margin: 10px 0;
+  color: var(--text);
+  cursor: pointer;
+  text-align: left;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.left-actions .btn:hover {
+  background: #2a2b2f;
+}
+
+.support .donate {
+  width: 100%;
+  padding: 12px;
+  border-radius: 14px;
+  border: 2px dashed #7c7c7c;
+  background: var(--panel-light);
+  color: var(--text);
+}
+
+/* ===========================
+   CENTER
+=========================== */
+.profile-small {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: var(--panel-light);
+  border-radius: 14px;
+  border: 1px solid #333;
+}
+
+.profile-avatar {
+  width: 36px;
+  height: 36px;
+  background: #777;
+  border-radius: 50%;
+  border: 2px solid #444;
+}
+
+.profile-name {
+  padding: 6px 12px;
+  border-radius: 10px;
+  border: 1px solid #505050;
+  background: transparent;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.main-post-frame {
+  width: 100%;
+  border-radius: 32px;
+  padding: 12px;
+  background: #0f141a;
+  border: 3px solid #2c3a47;
+}
+
+.main-post-frame img {
+  width: 100%;
+  border-radius: 26px;
+  object-fit: cover;
+  background: #111;
+}
+
+.post-caption {
+  font-size: 16px;
+  padding: 8px;
+  color: var(--text);
+}
+
+/* ===========================
+   RIGHT SIDEBAR
+=========================== */
+.placeholder-list li {
+  border: 1px dashed rgba(255, 255, 255, 0.08);
+  background: #222327;
+  color: var(--muted);
+  padding: 10px;
+  border-radius: 12px;
+}
+
+/* ===========================
+   RESPONSIVE
+=========================== */
+@media (max-width: 1100px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+  .right-col {
+    display: none;
+  }
+}

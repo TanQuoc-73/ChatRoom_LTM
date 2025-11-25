@@ -34,7 +34,7 @@ public class Notification {
     private Long id;
 
     @ManyToOne(fetch=FetchType.LAZY) @JoinColumn(name="user_id", nullable=false)
-    private AppUser user; // người nhận
+    private AppUser user;
 
     @Enumerated(EnumType.STRING)
     @Column(name="type", length=50, nullable=false)
@@ -53,5 +53,5 @@ public class Notification {
     @Column(name="read_at") private Instant readAt;
 
     @Column(name="created_at", nullable=false) private Instant createdAt = Instant.now();
-    // getters/setters
+
 }

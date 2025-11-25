@@ -31,27 +31,24 @@ public class MessageService {
 
     @Transactional
     public MessageResponse sendMessage(Long senderId, MessageRequest req) {
-        // validate tham số
+
         if (req == null || req.getConversationId() == null) {
-            throw new IllegalArgumentException("Invalid message request");
+            throw new IllegalArgumentException("Yêu cầu tin nhắn không hợp lệ");
         }
 
-        // lấy sender + conversation
         AppUser sender = userRepo.findById(senderId)
-                .orElseThrow(() -> new NoSuchElementException("Sender not found"));
+                .orElseThrow(() -> new NoSuchElementException("Không tìm thấy người gửi"));
         Conversation conv = convRepo.findById(req.getConversationId())
-                .orElseThrow(() -> new NoSuchElementException("Conversation not found"));
+                .orElseThrow(() -> new NoSuchElementException("Không thấy cuộc trò chuyện"));
 
-        // IDENTITY: kiểm tra idempotency (nếu clientCid được gửi)
         if (req.getClientCid() != null && !req.getClientCid().isBlank()) {
             Optional<ChatMessage> existed = msgRepo.findBySenderIdAndClientCid(senderId, req.getClientCid());
             if (existed.isPresent()) {
-                // trả về dữ liệu đã lưu trước đó (idempotent)
+
                 return mapToResponse(existed.get());
             }
         }
 
-        // Tạo ChatMessage entity
         ChatMessage msg = ChatMessage.builder()
                 .conversation(conv)
                 .sender(sender)
@@ -64,15 +61,13 @@ public class MessageService {
                 .deleted(false)
                 .build();
 
-        // Lưu message
         ChatMessage saved = msgRepo.save(msg);
 
-        // Lưu attachments (nếu có)
         List<Long> attachmentIds = new ArrayList<>();
         if (req.getAttachmentMediaIds() != null && !req.getAttachmentMediaIds().isEmpty()) {
             for (Long mediaId : req.getAttachmentMediaIds()) {
                 Media m = mediaRepo.findById(mediaId)
-                        .orElseThrow(() -> new NoSuchElementException("Media not found: " + mediaId));
+                        .orElseThrow(() -> new NoSuchElementException("Không thấy media " + mediaId));
                 MessageAttachment att = new MessageAttachment();
                 att.setMessage(saved);
                 att.setMedia(m);
@@ -83,34 +78,28 @@ public class MessageService {
             }
         }
 
-        // Tạo message_status cho tất cả member của conversation
         List<ConversationMember> members = memberRepo.findByIdConversationId(req.getConversationId());
         if (members != null && !members.isEmpty()) {
             List<MessageStatus> statuses = members.stream().map(cm -> {
                 MessageStatus s = new MessageStatus();
                 s.setMessage(saved);
                 s.setUser(cm.getUser());
-                // delivered_at, read_at null ban đầu
                 return s;
             }).collect(Collectors.toList());
             statusRepo.saveAll(statuses);
         }
 
-        // Cập nhật conversation.last_message_id và last_activity
         conv.setLastMessageId(saved.getId());
         conv.setLastActivity(Instant.now());
         convRepo.save(conv);
 
-        // Gọi realtime bridge để broadcast (không gây rollback nếu realtime lỗi)
         try {
             realtimeBridge.broadcastMessage(saved, req.getClientCid());
         } catch (Exception ex) {
-            // Log lỗi - không ném ngoại lệ để tránh rollback DB
-            // Ở production nên replace bằng logger (slf4j)
-            System.err.println("Realtime publish failed: " + ex.getMessage());
+
+            System.err.println("lỗi realtime  " + ex.getMessage());
         }
 
-        // Trả response cho client
         MessageResponse resp = MessageResponse.builder()
                 .id(saved.getId())
                 .conversationId(conv.getId())
@@ -144,10 +133,10 @@ public class MessageService {
             try {
                 realtimeBridge.notifyRead(messageId, userId);
             } catch (Exception ex) {
-                System.err.println("Realtime notifyRead failed: " + ex.getMessage());
+                System.err.println("Realtime đọc không thành công: " + ex.getMessage());
             }
         } else {
-            throw new NoSuchElementException("MessageStatus not found for messageId/userId");
+            throw new NoSuchElementException("Không tìm thấy MessageStatus");
         }
     }
 

@@ -83,6 +83,6 @@ public class UserController {
                 return userOpt.get().getId();
             }
         }
-        throw new IllegalArgumentException("Invalid or expired session");
+        throw new IllegalArgumentException("session không hợp lệ");
     }
 }

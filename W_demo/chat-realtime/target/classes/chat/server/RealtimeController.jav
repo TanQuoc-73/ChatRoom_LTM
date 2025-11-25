@@ -9,14 +9,12 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class RealtimeController {
 
-    private final ChatServer chatServer; // bean realtime server
+    private final ChatServer chatServer; 
 
     @PostMapping("/message")
     public void onMessage(@RequestBody Map<String,Object> body) {
-        // body keys: messageId, conversationId, senderId, content, clientCid, sentAt
         chatServer.broadcastMessageFromBackend(body);
     }
-
     @PostMapping("/read")
     public void onRead(@RequestBody Map<String,Object> body) {
         chatServer.broadcastReadReceipt(body);

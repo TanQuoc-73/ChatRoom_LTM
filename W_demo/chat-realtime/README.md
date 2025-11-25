@@ -11,3 +11,12 @@ client ok
 
 maven reset:
 mvn clean install
+
+{
+"username": "testuser1",
+"email": "test1@example.com",
+"password": "123456",
+"displayName": "Test User 1",
+"firstName": "Test",
+"lastName": "User"
+}
