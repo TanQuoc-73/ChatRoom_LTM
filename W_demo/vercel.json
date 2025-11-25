@@ -1,12 +1,7 @@
 {
-  "buildCommand": "cd W_demo/fe && pnpm run build",
-  "outputDirectory": "W_demo/fe/.next",
-  "installCommand": "cd W_demo/fe && pnpm install",
+  "src": "fe",
   "framework": "nextjs",
-  "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/W_demo/fe/$1"
-    }
-  ]
+  "installCommand": "pnpm install",
+  "buildCommand": "pnpm run build",
+  "outputDirectory": ".next"
 }
