@@ -5,6 +5,7 @@ import { isValidEmail, isValidPassword } from '@/lib/utils/session';
 interface UseAuthReturn {
   isLoading: boolean;
   error: string | null;
+  token: string | null;
   login: (username: string, password: string) => Promise<boolean>;
   register: (username: string, email: string, password: string, displayName?: string, firstName?: string, lastName?: string) => Promise<boolean>;
   forgotPassword: (email: string) => Promise<boolean>;
@@ -19,17 +20,19 @@ interface UseAuthReturn {
 export const useAuth = (): UseAuthReturn => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [token, setToken] = useState<string | null>(null);
 
   const clearError = () => setError(null);
 
   const login = async (username: string, password: string): Promise<boolean> => {
     setIsLoading(true);
     setError(null);
-
     try {
       const result = await AuthService.login(username, password);
-      
       if (result.success) {
+        if (result.sessionToken) {
+          setToken(result.sessionToken);
+        }
         return true;
       } else {
         setError(result.message);
@@ -42,6 +45,7 @@ export const useAuth = (): UseAuthReturn => {
       setIsLoading(false);
     }
   };
+  
 
   const register = async (
     username: string,
@@ -145,12 +149,14 @@ export const useAuth = (): UseAuthReturn => {
       await AuthService.logout();
     } finally {
       setIsLoading(false);
+      setToken(null);
     }
   };
 
   return {
     isLoading,
     error,
+    token,
     login,
     register,
     forgotPassword,

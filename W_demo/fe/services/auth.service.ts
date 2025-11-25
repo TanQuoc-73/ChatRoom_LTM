@@ -34,7 +34,7 @@ export const AuthService = {
       if (data.success && data.sessionToken) {
         SessionManager.setToken(data.sessionToken);
         if (data.userId && data.username) {
-          SessionManager.setUserInfo(data.userId, data.username);
+          SessionManager.setUserInfo(data.userId, data.username, data.displayName);
         }
       }
 

@@ -51,7 +51,7 @@ export default function Home() {
       if (success) {
         setSuccessMessage("Đăng nhập thành công!");
         setTimeout(() => {
-          window.location.href = "/chat";
+          window.location.href = "/home";
         }, 1500);
       }
     } else if (mode === "register") {

@@ -31,6 +31,7 @@ export const SessionManager = {
       localStorage.removeItem(STORAGE_KEYS.SESSION_TOKEN);
       localStorage.removeItem(STORAGE_KEYS.USER_ID);
       localStorage.removeItem(STORAGE_KEYS.USERNAME);
+      localStorage.removeItem(STORAGE_KEYS.DISPLAY_NAME);
     }
   },
 
@@ -45,26 +46,31 @@ export const SessionManager = {
   /**
    * Store user info
    */
-  setUserInfo: (userId: number, username: string): void => {
+  setUserInfo: (userId: number, username: string, displayName?: string): void => {
     if (typeof window !== 'undefined') {
       localStorage.setItem(STORAGE_KEYS.USER_ID, userId.toString());
       localStorage.setItem(STORAGE_KEYS.USERNAME, username);
+      if (displayName) {
+        localStorage.setItem(STORAGE_KEYS.DISPLAY_NAME, displayName);
+      }
     }
   },
 
   /**
    * Get user info
    */
-  getUserInfo: (): { userId: number | null; username: string | null } => {
+  getUserInfo: (): { userId: number | null; username: string | null; displayName: string | null } => {
     if (typeof window !== 'undefined') {
       const userId = localStorage.getItem(STORAGE_KEYS.USER_ID);
       const username = localStorage.getItem(STORAGE_KEYS.USERNAME);
+      const displayName = localStorage.getItem(STORAGE_KEYS.DISPLAY_NAME);
       return {
         userId: userId ? parseInt(userId) : null,
         username,
+        displayName,
       };
     }
-    return { userId: null, username: null };
+    return { userId: null, username: null, displayName: null };
   },
 };
 

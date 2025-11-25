@@ -33,4 +33,5 @@ export const STORAGE_KEYS = {
   SESSION_TOKEN: 'sessionToken',
   USER_ID: 'userId',
   USERNAME: 'username',
+  DISPLAY_NAME: 'displayName',
 } as const;
