@@ -31,21 +31,20 @@ public class AuthController {
     public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
         try {
             AppUser user = authService.register(
-                request.getUsername(),
-                request.getEmail(),
-                request.getPassword(),
-                request.getDisplayName(),
-                request.getFirstName(),
-                request.getLastName()
-            );
+                    request.getUsername(),
+                    request.getEmail(),
+                    request.getPassword(),
+                    request.getDisplayName(),
+                    request.getFirstName(),
+                    request.getLastName());
 
             return ResponseEntity.ok(AuthResponse.success(
-                "Đăng ký thành kông", 
-                user.getId(), 
-                user.getUsername(),
-                null
-            ));
-            
+                    "Đăng ký thành kông",
+                    user.getId(),
+                    user.getUsername(),
+                    user.getDisplayName(),
+                    null));
+
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(AuthResponse.error(e.getMessage()));
         } catch (Exception e) {
@@ -55,24 +54,23 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request, 
-                                            HttpServletRequest httpRequest) {
+    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request,
+            HttpServletRequest httpRequest) {
         try {
             UserSession session = authService.login(
-                request.getUsername(),
-                request.getPassword(),
-                request.getDeviceType(),
-                httpRequest.getHeader("User-Agent"),
-                httpRequest.getRemoteAddr()
-            );
+                    request.getUsername(),
+                    request.getPassword(),
+                    request.getDeviceType(),
+                    httpRequest.getHeader("User-Agent"),
+                    httpRequest.getRemoteAddr());
 
             return ResponseEntity.ok(AuthResponse.success(
-                "Đăng nhập thành kông",
-                session.getUser().getId(),
-                session.getUser().getUsername(),
-                session.getSessionToken()
-            ));
-            
+                    "Đăng nhập thành kông",
+                    session.getUser().getId(),
+                    session.getUser().getUsername(),
+                    session.getUser().getDisplayName(),
+                    session.getSessionToken()));
+
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(AuthResponse.error(e.getMessage()));
         } catch (Exception e) {
@@ -86,9 +84,9 @@ public class AuthController {
         try {
             String sessionToken = extractSessionToken(authorization);
             authService.logout(sessionToken);
-            
-            return ResponseEntity.ok(AuthResponse.success("Đăng xuất thành kông, đừng đi mà", null, null, null));
-            
+
+            return ResponseEntity.ok(AuthResponse.success("Đăng xuất thành kông, đừng đi mà", null, null, null, null));
+
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(AuthResponse.error(e.getMessage()));
         } catch (Exception e) {
@@ -102,19 +100,19 @@ public class AuthController {
         try {
             String sessionToken = extractSessionToken(authorization);
             var userOpt = authService.validateSession(sessionToken);
-            
+
             if (userOpt.isPresent()) {
                 AppUser user = userOpt.get();
                 return ResponseEntity.ok(AuthResponse.success(
-                    "Phiên hợp lệ",
-                    user.getId(),
-                    user.getUsername(),
-                    sessionToken
-                ));
+                        "Phiên hợp lệ",
+                        user.getId(),
+                        user.getUsername(),
+                        user.getDisplayName(),
+                        sessionToken));
             } else {
                 return ResponseEntity.status(401).body(AuthResponse.error("Phiên ko hợp lệ hoặc hết hạn"));
             }
-            
+
         } catch (Exception e) {
             return ResponseEntity.status(401).body(AuthResponse.error("Xác thực phiên ko thành kông"));
         }
@@ -124,14 +122,14 @@ public class AuthController {
     public ResponseEntity<AuthResponse> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
         try {
             authService.requestPasswordReset(request.getEmail());
-            
+
             return ResponseEntity.ok(AuthResponse.success(
-                "Mã OTP đã được gửi đến email của bạn. Vui lòng kiểm tra hộp thư.",
-                null,
-                null,
-                null
-            ));
-            
+                    "Mã OTP đã được gửi đến email của bạn. Vui lòng kiểm tra hộp thư.",
+                    null,
+                    null,
+                    null,
+                    null));
+
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(AuthResponse.error(e.getMessage()));
         } catch (Exception e) {
@@ -144,18 +142,17 @@ public class AuthController {
     public ResponseEntity<AuthResponse> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
         try {
             authService.resetPassword(
-                request.getEmail(),
-                request.getOtp(),
-                request.getNewPassword()
-            );
-            
+                    request.getEmail(),
+                    request.getOtp(),
+                    request.getNewPassword());
+
             return ResponseEntity.ok(AuthResponse.success(
-                "Mật khẩu đã được đặt lại thành công. Vui lòng đăng nhập lại.",
-                null,
-                null,
-                null
-            ));
-            
+                    "Mật khẩu đã được đặt lại thành công. Vui lòng đăng nhập lại.",
+                    null,
+                    null,
+                    null,
+                    null));
+
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(AuthResponse.error(e.getMessage()));
         } catch (Exception e) {
