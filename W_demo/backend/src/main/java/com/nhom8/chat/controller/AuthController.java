@@ -9,8 +9,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.nhom8.chat.dto.AuthResponse;
+import com.nhom8.chat.dto.ForgotPasswordRequest;
 import com.nhom8.chat.dto.LoginRequest;
 import com.nhom8.chat.dto.RegisterRequest;
+import com.nhom8.chat.dto.ResetPasswordRequest;
 import com.nhom8.chat.entity.AppUser;
 import com.nhom8.chat.entity.UserSession;
 import com.nhom8.chat.service.AuthService;
@@ -115,6 +117,50 @@ public class AuthController {
             
         } catch (Exception e) {
             return ResponseEntity.status(401).body(AuthResponse.error("Xác thực phiên ko thành kông"));
+        }
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<AuthResponse> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        try {
+            authService.requestPasswordReset(request.getEmail());
+            
+            return ResponseEntity.ok(AuthResponse.success(
+                "Mã OTP đã được gửi đến email của bạn. Vui lòng kiểm tra hộp thư.",
+                null,
+                null,
+                null
+            ));
+            
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(AuthResponse.error(e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError()
+                    .body(AuthResponse.error("Không thể gửi OTP. Vui lòng thử lại sau."));
+        }
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<AuthResponse> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        try {
+            authService.resetPassword(
+                request.getEmail(),
+                request.getOtp(),
+                request.getNewPassword()
+            );
+            
+            return ResponseEntity.ok(AuthResponse.success(
+                "Mật khẩu đã được đặt lại thành công. Vui lòng đăng nhập lại.",
+                null,
+                null,
+                null
+            ));
+            
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(AuthResponse.error(e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError()
+                    .body(AuthResponse.error("Không thể đặt lại mật khẩu. Vui lòng thử lại."));
         }
     }
 
