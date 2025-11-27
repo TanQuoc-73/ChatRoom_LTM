@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { useAuth as useAuthHook } from "@/hooks/useAuth";
 import { SessionManager } from "@/lib/utils/session";
+import { AuthService } from "@/services/auth.service";
 
 type User = {
   username: string;
@@ -24,17 +25,32 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
 
   // Update user info when token changes (fetch from session)
+  // Update user info when token changes (fetch from session)
   useEffect(() => {
     if (token) {
+      // 1. Initial load from local storage
       const userInfo = SessionManager.getUserInfo();
       if (userInfo.username) {
         setUser({
           username: userInfo.username,
           displayName: userInfo.displayName || undefined,
         });
-      } else {
-        setUser(null);
       }
+
+      // 2. Validate session to get fresh data (including displayName if missing)
+      AuthService.validateSession().then((response) => {
+        if (response && response.success && response.username) {
+          // SessionManager is already updated by validateSession
+          const freshUser = SessionManager.getUserInfo();
+          setUser({
+            username: freshUser.username!,
+            displayName: freshUser.displayName || undefined,
+          });
+        } else if (!response) {
+          // Token invalid
+          setUser(null);
+        }
+      });
     } else {
       setUser(null);
     }
