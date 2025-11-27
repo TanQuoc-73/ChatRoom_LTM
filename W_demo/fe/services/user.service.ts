@@ -1,6 +1,6 @@
 import { API_ENDPOINTS } from '../lib/constants';
 import { SessionManager, handleApiError } from '../lib/utils/session';
-import type { UserProfile, UserSearchResponse } from '@/types/user.types';
+import type { UserProfile, UserSearchResponse, UserSearchSingleResponse } from '@/types/user.types';
 
 /**
  * User Service
@@ -32,14 +32,14 @@ export const UserService = {
       if (!response.ok) {
         if (response.status === 404) {
           return {
-            success: false,
-            error: 'User not found',
+            success: true,
+            data: [], // No users found, return empty array
           };
         }
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const data: UserProfile = await response.json();
+      const data: UserProfile[] = await response.json(); // Expect array from backend
       
       return {
         success: true,
@@ -58,7 +58,7 @@ export const UserService = {
    * @param userId - User ID to fetch
    * @returns UserSearchResponse with user profile
    */
-  getUserProfile: async (userId: number): Promise<UserSearchResponse> => {
+  getUserProfile: async (userId: number): Promise<UserSearchSingleResponse> => {
     try {
       const response = await fetch(API_ENDPOINTS.USERS.BY_ID(userId), {
         method: 'GET',
@@ -96,7 +96,7 @@ export const UserService = {
    * Get current user's profile
    * @returns UserSearchResponse with current user profile
    */
-  getMyProfile: async (): Promise<UserSearchResponse> => {
+  getMyProfile: async (): Promise<UserSearchSingleResponse> => {
     try {
       const response = await fetch(API_ENDPOINTS.USERS.PROFILE, {
         method: 'GET',

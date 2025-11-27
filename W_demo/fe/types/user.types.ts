@@ -26,6 +26,13 @@ export interface UserSearchParams {
 
 export interface UserSearchResponse {
   success: boolean;
+  data?: UserProfile[];  // Changed to array to support multiple results
+  error?: string;
+}
+
+// For backward compatibility - single user response
+export interface UserSearchSingleResponse {
+  success: boolean;
   data?: UserProfile;
   error?: string;
 }
