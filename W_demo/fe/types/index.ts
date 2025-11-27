@@ -79,3 +79,6 @@ export interface ConversationCreateRequest {
   type: 'PRIVATE' | 'GROUP';
   memberUserIds: number[];
 }
+
+// Re-export user types
+export * from './user.types';

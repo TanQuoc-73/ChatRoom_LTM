@@ -25,6 +25,7 @@ export const API_ENDPOINTS = {
     BASE: `${API_BASE_URL}/users`,
     BY_ID: (id: number) => `${API_BASE_URL}/users/${id}`,
     PROFILE: `${API_BASE_URL}/users/profile`,
+    SEARCH: (username: string) => `${API_BASE_URL}/users/search?username=${encodeURIComponent(username)}`,
   },
 } as const;
 
