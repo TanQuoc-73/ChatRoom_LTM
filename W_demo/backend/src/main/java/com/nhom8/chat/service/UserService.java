@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -88,48 +89,60 @@ public class UserService {
     }
 
     // Đổi avatar
-public UserProfileDTO updateAvatar(Long userId, Long mediaId) {
-    // Lấy user và media entities
-    AppUser user = appUserRepository.findById(userId)
-            .orElseThrow(() -> new IllegalArgumentException("User not found"));
-    Media media = mediaRepository.findById(mediaId)
-            .orElseThrow(() -> new IllegalArgumentException("Media not found"));
+    public UserProfileDTO updateAvatar(Long userId, Long mediaId) {
+        // Lấy user và media entities
+        AppUser user = appUserRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        Media media = mediaRepository.findById(mediaId)
+                .orElseThrow(() -> new IllegalArgumentException("Media not found"));
 
-    // Set tất cả avatar cũ thành không current
-    userAvatarRepository.setAllAvatarsNotCurrent(userId);
+        // Set tất cả avatar cũ thành không current
+        userAvatarRepository.setAllAvatarsNotCurrent(userId);
 
-    // Tạo avatar mới 
-    UserAvatar newAvatar = new UserAvatar();
-    newAvatar.setUser(user);       
-    newAvatar.setMedia(media);
-    newAvatar.setCurrent(true);
-    newAvatar.setSetAsAvatarAt(Instant.now());
-    userAvatarRepository.save(newAvatar);
+        // Tạo avatar mới
+        UserAvatar newAvatar = new UserAvatar();
+        newAvatar.setUser(user);
+        newAvatar.setMedia(media);
+        newAvatar.setCurrent(true);
+        newAvatar.setSetAsAvatarAt(Instant.now());
+        userAvatarRepository.save(newAvatar);
 
-    return getUserProfile(userId);
-}
+        return getUserProfile(userId);
+    }
 
-public UserProfileDTO updateCoverPhoto(Long userId, Long mediaId) {
-    AppUser user = appUserRepository.findById(userId)
-            .orElseThrow(() -> new IllegalArgumentException("User not found"));
-    Media media = mediaRepository.findById(mediaId)
-            .orElseThrow(() -> new IllegalArgumentException("Media not found"));
+    public UserProfileDTO updateCoverPhoto(Long userId, Long mediaId) {
+        AppUser user = appUserRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        Media media = mediaRepository.findById(mediaId)
+                .orElseThrow(() -> new IllegalArgumentException("Media not found"));
 
-    // Set tất cả cover cũ thành không current
-    userCoverPhotoRepository.setAllCoverPhotosNotCurrent(userId);
+        // Set tất cả cover cũ thành không current
+        userCoverPhotoRepository.setAllCoverPhotosNotCurrent(userId);
 
-    // Tạo cover mới 
-    UserCoverPhoto newCover = new UserCoverPhoto();
-    newCover.setUser(user);        
-    newCover.setMedia(media);
-    newCover.setCurrent(true);
-    newCover.setSetAsCoverAt(Instant.now());
-    userCoverPhotoRepository.save(newCover);
+        // Tạo cover mới
+        UserCoverPhoto newCover = new UserCoverPhoto();
+        newCover.setUser(user);
+        newCover.setMedia(media);
+        newCover.setCurrent(true);
+        newCover.setSetAsCoverAt(Instant.now());
+        userCoverPhotoRepository.save(newCover);
 
-    return getUserProfile(userId);
-}
+        return getUserProfile(userId);
+    }
 
-    // Tìm user theo username
+    // Tìm user theo username hoặc displayName (partial match)
+    public List<UserProfileDTO> searchUsers(String searchTerm) {
+        if (searchTerm == null || searchTerm.trim().isEmpty()) {
+            return List.of();
+        }
+
+        List<AppUser> users = appUserRepository.searchByUsernameOrDisplayName(searchTerm.trim());
+        return users.stream()
+                .map(user -> getUserProfile(user.getId()))
+                .toList();
+    }
+
+    // Tìm user theo username (exact match) - giữ lại cho backward compatibility
     public Optional<UserProfileDTO> findUserByUsername(String username) {
         return appUserRepository.findByUsername(username)
                 .map(user -> getUserProfile(user.getId()));

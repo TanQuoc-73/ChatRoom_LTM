@@ -9,7 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Optional;
+import java.util.List;
 
 @RestController
 @RequestMapping("/users")
@@ -69,10 +69,12 @@ public class UserController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<UserProfileDTO> searchUser(@RequestParam String username) {
-        Optional<UserProfileDTO> user = userService.findUserByUsername(username);
-        return user.map(ResponseEntity::ok)
-                  .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<List<UserProfileDTO>> searchUser(@RequestParam String username) {
+        List<UserProfileDTO> users = userService.searchUsers(username);
+        if (users.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(users);
     }
 
     private Long getUserIdFromToken(String authorization) {
