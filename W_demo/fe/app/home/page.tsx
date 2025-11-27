@@ -102,14 +102,14 @@ export default function HomePage() {
                         {post.avatar}
                       </div>
                       <div>
-                        <p className="font-semibold text-sm">{post.username}</p>
+                        <p className="font-semibold text-sm text-gray-900">{post.username}</p>
                         {post.location && (
-                          <p className="text-xs text-gray-500">{post.location}</p>
+                          <p className="text-xs text-gray-600">{post.location}</p>
                         )}
                       </div>
                     </div>
                     <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-                      <MoreHorizontal className="h-5 w-5" />
+                      <MoreHorizontal className="h-5 w-5 text-gray-900" />
                     </button>
                   </div>
 
@@ -138,18 +138,18 @@ export default function HomePage() {
                     </div>
 
                     {/* Likes */}
-                    <p className="font-semibold text-sm mb-2">
+                    <p className="font-semibold text-sm text-gray-900 mb-2">
                       {post.likes.toLocaleString()} lượt thích
                     </p>
 
                     {/* Caption */}
-                    <p className="text-sm mb-2">
+                    <p className="text-sm text-gray-900 mb-2">
                       <span className="font-semibold mr-2">{post.username}</span>
                       {post.caption}
                     </p>
 
                     {/* Comments */}
-                    <button className="text-sm text-gray-500 mb-2">
+                    <button className="text-sm text-gray-600 mb-2 hover:text-gray-900">
                       Xem tất cả {post.comments} bình luận
                     </button>
 
@@ -163,9 +163,9 @@ export default function HomePage() {
                       <input
                         type="text"
                         placeholder="Thêm bình luận..."
-                        className="flex-1 outline-none text-sm"
+                        className="flex-1 outline-none text-sm text-gray-900 placeholder-gray-500"
                       />
-                      <button className="text-blue-500 font-semibold text-sm">
+                      <button className="text-blue-500 font-semibold text-sm hover:text-blue-700">
                         Đăng
                       </button>
                     </div>
@@ -183,10 +183,10 @@ export default function HomePage() {
                     👤
                   </div>
                   <div className="flex-1">
-                    <p className="font-semibold text-sm">your_username</p>
-                    <p className="text-sm text-gray-500">Tên hiển thị</p>
+                    <p className="font-semibold text-sm text-gray-900">your_username</p>
+                    <p className="text-sm text-gray-600">Tên hiển thị</p>
                   </div>
-                  <button className="text-blue-500 text-xs font-semibold">
+                  <button className="text-blue-500 text-xs font-semibold hover:text-blue-700">
                     Chuyển
                   </button>
                 </div>
@@ -194,10 +194,10 @@ export default function HomePage() {
                 {/* Suggestions */}
                 <div>
                   <div className="flex items-center justify-between mb-4">
-                    <p className="text-sm font-semibold text-gray-500">
+                    <p className="text-sm font-semibold text-gray-700">
                       Gợi ý cho bạn
                     </p>
-                    <button className="text-xs font-semibold">Xem tất cả</button>
+                    <button className="text-xs font-semibold text-gray-900 hover:text-gray-600">Xem tất cả</button>
                   </div>
 
                   <div className="space-y-3">
@@ -207,12 +207,12 @@ export default function HomePage() {
                           {user.avatar}
                         </div>
                         <div className="flex-1">
-                          <p className="font-semibold text-sm">{user.username}</p>
-                          <p className="text-xs text-gray-500">
+                          <p className="font-semibold text-sm text-gray-900">{user.username}</p>
+                          <p className="text-xs text-gray-600">
                             {user.mutualFriends} bạn chung
                           </p>
                         </div>
-                        <button className="text-blue-500 text-xs font-semibold">
+                        <button className="text-blue-500 text-xs font-semibold hover:text-blue-700">
                           Theo dõi
                         </button>
                       </div>
