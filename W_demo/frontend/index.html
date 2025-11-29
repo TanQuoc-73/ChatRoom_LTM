@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng Nhập - Chat Application</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Background Video -->
+        <div class="background-video">
+            <video autoplay loop muted playsinline>
+                <source src="./src/videos/background.mp4" type="video/mp4">
+            </video>
+            <!-- Fallback background image -->
+            <img src="./src/public/auth-bg.jpg" alt="Background" class="fallback-bg">
+        </div>
+
+        <!-- Auth Form Container -->
+        <div class="auth-container">
+            <div class="auth-card">
+                <!-- Title -->
+                <div class="auth-header">
+                    <h1 id="auth-title">Đăng Nhập</h1>
+                </div>
+
+                <!-- Error Message -->
+                <div id="error-message" class="message error-message" style="display: none;">
+                    <p id="error-text"></p>
+                </div>
+
+                <!-- Success Message -->
+                <div id="success-message" class="message success-message" style="display: none;">
+                    <p id="success-text"></p>
+                </div>
+
+                <!-- Auth Form -->
+                <form id="auth-form" class="auth-form">
+                    <!-- Username (Login & Register) -->
+                    <div id="username-field" class="form-field">
+                        <input 
+                            type="text" 
+                            id="username" 
+                            name="username" 
+                            placeholder="Tên đăng nhập" 
+                            class="form-input"
+                            required
+                        >
+                    </div>
+
+                    <!-- Email (Register & Forgot Password) -->
+                    <div id="email-field" class="form-field" style="display: none;">
+                        <div class="email-container">
+                            <input 
+                                type="email" 
+                                id="email" 
+                                name="email" 
+                                placeholder="Email" 
+                                class="form-input"
+                            >
+                            <button 
+                                type="button" 
+                                id="send-otp-btn" 
+                                class="btn-secondary"
+                                style="display: none;"
+                            >
+                                Gửi OTP
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Display Name (Register only) -->
+                    <div id="displayname-field" class="form-field" style="display: none;">
+                        <input 
+                            type="text" 
+                            id="displayName" 
+                            name="displayName" 
+                            placeholder="Tên hiển thị" 
+                            class="form-input"
+                        >
+                    </div>
+
+                    <!-- First Name & Last Name (Register only) -->
+                    <div id="name-fields" class="form-field-group" style="display: none;">
+                        <input 
+                            type="text" 
+                            id="firstName" 
+                            name="firstName" 
+                            placeholder="Tên" 
+                            class="form-input"
+                        >
+                        <input 
+                            type="text" 
+                            id="lastName" 
+                            name="lastName" 
+                            placeholder="Họ" 
+                            class="form-input"
+                        >
+                    </div>
+
+                    <!-- Password -->
+                    <div id="password-field" class="form-field">
+                        <input 
+                            type="password" 
+                            id="password" 
+                            name="password" 
+                            placeholder="Mật khẩu" 
+                            class="form-input"
+                            required
+                        >
+                    </div>
+
+                    <!-- Confirm Password (Register & Forgot Password) -->
+                    <div id="confirm-password-field" class="form-field" style="display: none;">
+                        <input 
+                            type="password" 
+                            id="confirmPassword" 
+                            name="confirmPassword" 
+                            placeholder="Nhập lại mật khẩu" 
+                            class="form-input"
+                        >
+                    </div>
+
+                    <!-- OTP (Forgot Password only) -->
+                    <div id="otp-field" class="form-field" style="display: none;">
+                        <input 
+                            type="text" 
+                            id="otp" 
+                            name="otp" 
+                            placeholder="Mã xác nhận (OTP)" 
+                            class="form-input"
+                        >
+                        <p id="otp-sent-message" class="otp-message" style="display: none;">
+                            ✓ OTP đã được gửi đến email
+                        </p>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" id="submit-btn" class="btn-primary">
+                        Đăng Nhập
+                    </button>
+                </form>
+
+                <!-- Toggle Mode Links -->
+                <div class="auth-footer">
+                    <div id="login-links" class="toggle-links">
+                        <button type="button" class="link-btn" id="goto-register">
+                            Chưa có tài khoản? Đăng ký ngay
+                        </button>
+                        <button type="button" class="link-btn" id="goto-forgot">
+                            Quên mật khẩu?
+                        </button>
+                    </div>
+                    <div id="other-links" class="toggle-links" style="display: none;">
+                        <button type="button" class="link-btn" id="goto-login">
+                            Đã có tài khoản? Đăng nhập
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/auth-service.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
