@@ -11,7 +11,7 @@
     <header class="header">
         <div class="header-container">
             <div class="header-left">
-                <h1 class="logo">ChatApp</h1>
+                <h1 class="logo">Chát Room</h1>
             </div>
             <div class="header-center">
                 <input type="text" class="search-bar" placeholder="Tìm kiếm...">
@@ -60,155 +60,15 @@
     <!-- Main Content -->
     <main class="main-content">
         <div class="content-container">
-            <!-- Left Sidebar - Stories/Suggestions -->
-            <aside class="sidebar-left">
-                <div class="stories-section">
-                    <h3>Gợi ý cho bạn</h3>
-                    <div class="suggestion-list">
-                        <div class="suggestion-item">
-                            <img src="https://via.placeholder.com/40" alt="User">
-                            <div class="suggestion-info">
-                                <span class="suggestion-name">Người dùng 1</span>
-                                <span class="suggestion-status">Đang hoạt động</span>
-                            </div>
-                        </div>
-                        <div class="suggestion-item">
-                            <img src="https://via.placeholder.com/40" alt="User">
-                            <div class="suggestion-info">
-                                <span class="suggestion-name">Người dùng 2</span>
-                                <span class="suggestion-status">Đang hoạt động</span>
-                            </div>
-                        </div>
-                        <div class="suggestion-item">
-                            <img src="https://via.placeholder.com/40" alt="User">
-                            <div class="suggestion-info">
-                                <span class="suggestion-name">Người dùng 3</span>
-                                <span class="suggestion-status">Đang hoạt động</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </aside>
-
-            <!-- Center Feed -->
-            <div class="feed">
-                <div class="welcome-card">
-                    <h2>Chào mừng đến với ChatApp!</h2>
-                    <p>Kết nối với bạn bè và chia sẻ khoảnh khắc của bạn.</p>
-                </div>
-
-                <!-- Post Card Example -->
-                <div class="post-card">
-                    <div class="post-header">
-                        <img src="https://via.placeholder.com/40" alt="User Avatar" class="post-avatar">
-                        <div class="post-user-info">
-                            <span class="post-username">username_example</span>
-                            <span class="post-time">2 giờ trước</span>
-                        </div>
-                    </div>
-                    <div class="post-image">
-                        <img src="https://via.placeholder.com/600x400" alt="Post Image">
-                    </div>
-                    <div class="post-actions">
-                        <button class="action-btn">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-                            </svg>
-                        </button>
-                        <button class="action-btn">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-                            </svg>
-                        </button>
-                        <button class="action-btn">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <circle cx="18" cy="5" r="3"></circle>
-                                <circle cx="6" cy="12" r="3"></circle>
-                                <circle cx="18" cy="19" r="3"></circle>
-                                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-                                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
-                            </svg>
-                        </button>
-                    </div>
-                    <div class="post-likes">
-                        <strong>123 lượt thích</strong>
-                    </div>
-                    <div class="post-caption">
-                        <strong>username_example</strong> Đây là một bài viết mẫu trên ChatApp!
-                    </div>
-                </div>
-
-                <!-- Another Post Card -->
-                <div class="post-card">
-                    <div class="post-header">
-                        <img src="https://via.placeholder.com/40" alt="User Avatar" class="post-avatar">
-                        <div class="post-user-info">
-                            <span class="post-username">another_user</span>
-                            <span class="post-time">5 giờ trước</span>
-                        </div>
-                    </div>
-                    <div class="post-image">
-                        <img src="https://via.placeholder.com/600x600" alt="Post Image">
-                    </div>
-                    <div class="post-actions">
-                        <button class="action-btn">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-                            </svg>
-                        </button>
-                        <button class="action-btn">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-                            </svg>
-                        </button>
-                        <button class="action-btn">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <circle cx="18" cy="5" r="3"></circle>
-                                <circle cx="6" cy="12" r="3"></circle>
-                                <circle cx="18" cy="19" r="3"></circle>
-                                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-                                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
-                            </svg>
-                        </button>
-                    </div>
-                    <div class="post-likes">
-                        <strong>456 lượt thích</strong>
-                    </div>
-                    <div class="post-caption">
-                        <strong>another_user</strong> Khoảnh khắc tuyệt vời! 🎉
-                    </div>
-                </div>
+            <div class="welcome-card">
+                <h2>Chào mừng đến với ChatApp!</h2>
+                <p id="welcome-message">Xin chào, <span id="user-display-name"></span>!</p>
             </div>
-
-            <!-- Right Sidebar - Suggestions -->
-            <aside class="sidebar-right">
-                <div class="profile-card">
-                    <img src="https://via.placeholder.com/56" alt="Your Avatar" class="profile-avatar">
-                    <div class="profile-info">
-                        <span class="profile-username" id="profile-username">username</span>
-                        <span class="profile-name" id="profile-name">Tên hiển thị</span>
-                    </div>
-                </div>
-                <div class="suggestions">
-                    <h4>Gợi ý cho bạn</h4>
-                    <div class="suggestion-item">
-                        <img src="https://via.placeholder.com/32" alt="User">
-                        <div class="suggestion-info">
-                            <span class="suggestion-name">user_suggestion_1</span>
-                            <span class="suggestion-mutual">Theo dõi bạn</span>
-                        </div>
-                        <button class="follow-btn">Theo dõi</button>
-                    </div>
-                    <div class="suggestion-item">
-                        <img src="https://via.placeholder.com/32" alt="User">
-                        <div class="suggestion-info">
-                            <span class="suggestion-name">user_suggestion_2</span>
-                            <span class="suggestion-mutual">Gợi ý cho bạn</span>
-                        </div>
-                        <button class="follow-btn">Theo dõi</button>
-                    </div>
-                </div>
-            </aside>
+            
+            <!-- Empty container for future content -->
+            <div class="content-area">
+                <!-- Nội dung sẽ được thêm vào đây -->
+            </div>
         </div>
     </main>
 

@@ -29,21 +29,21 @@ function loadUserInfo() {
     const username = localStorage.getItem(STORAGE_KEYS.USERNAME);
     const displayName = localStorage.getItem(STORAGE_KEYS.DISPLAY_NAME);
 
-    // Update profile info in sidebar
-    const profileUsername = document.getElementById('profile-username');
-    const profileName = document.getElementById('profile-name');
+    // Update display name in welcome message
+    const userDisplayNameSpan = document.getElementById('user-display-name');
+    
+    if (userDisplayNameSpan) {
+        if (displayName) {
+            userDisplayNameSpan.textContent = displayName;
+        } else if (username) {
+            userDisplayNameSpan.textContent = username;
+        } else {
+            userDisplayNameSpan.textContent = 'Người dùng';
+        }
+    }
+
+    // Update display name in dropdown menu
     const displayNameText = document.getElementById('display-name-text');
-
-    if (profileUsername && username) {
-        profileUsername.textContent = username;
-    }
-
-    if (profileName && displayName) {
-        profileName.textContent = displayName;
-    } else if (profileName && username) {
-        profileName.textContent = username;
-    }
-
     if (displayNameText && displayName) {
         displayNameText.textContent = displayName;
     } else if (displayNameText && username) {
