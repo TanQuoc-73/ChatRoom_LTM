@@ -1,0 +1,423 @@
+/* Reset and Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background-color: #fafafa;
+    color: #262626;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Header */
+.header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background-color: #ffffff;
+    border-bottom: 1px solid #dbdbdb;
+    z-index: 100;
+}
+
+.header-container {
+    max-width: 975px;
+    margin: 0 auto;
+    padding: 0 20px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.header-left .logo {
+    font-size: 24px;
+    font-weight: 600;
+    font-family: 'Segoe UI', sans-serif;
+    color: #262626;
+    cursor: pointer;
+}
+
+.header-center {
+    flex: 1;
+    max-width: 268px;
+    margin: 0 20px;
+}
+
+.search-bar {
+    width: 100%;
+    padding: 8px 16px;
+    background-color: #efefef;
+    border: 1px solid #dbdbdb;
+    border-radius: 8px;
+    font-size: 14px;
+    outline: none;
+    transition: all 0.2s;
+}
+
+.search-bar:focus {
+    background-color: #ffffff;
+    border-color: #a8a8a8;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.icon-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #262626;
+    transition: color 0.2s;
+}
+
+.icon-btn:hover {
+    color: #8e8e8e;
+}
+
+/* User Menu */
+.user-menu {
+    position: relative;
+}
+
+.user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    overflow: hidden;
+}
+
+.user-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.dropdown-menu {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    background-color: #ffffff;
+    border: 1px solid #dbdbdb;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    min-width: 200px;
+    display: none;
+    overflow: hidden;
+}
+
+.dropdown-menu.show {
+    display: block;
+}
+
+.dropdown-item {
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: none;
+    border: none;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    font-size: 14px;
+    color: #262626;
+    transition: background-color 0.2s;
+}
+
+.dropdown-item:hover {
+    background-color: #fafafa;
+}
+
+.dropdown-divider {
+    height: 1px;
+    background-color: #dbdbdb;
+    margin: 4px 0;
+}
+
+/* Main Content */
+.main-content {
+    margin-top: 60px;
+    padding: 30px 20px;
+}
+
+.content-container {
+    max-width: 975px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 2fr 1fr;
+    gap: 30px;
+}
+
+/* Sidebar Left */
+.sidebar-left {
+    display: none;
+}
+
+@media (min-width: 1024px) {
+    .sidebar-left {
+        display: block;
+    }
+}
+
+.stories-section h3 {
+    font-size: 14px;
+    font-weight: 600;
+    color: #8e8e8e;
+    margin-bottom: 16px;
+}
+
+.suggestion-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.suggestion-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.suggestion-item:hover {
+    background-color: #fafafa;
+}
+
+.suggestion-item img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.suggestion-info {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.suggestion-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #262626;
+}
+
+.suggestion-status {
+    font-size: 12px;
+    color: #8e8e8e;
+}
+
+/* Feed */
+.feed {
+    max-width: 470px;
+    margin: 0 auto;
+}
+
+.welcome-card {
+    background-color: #ffffff;
+    border: 1px solid #dbdbdb;
+    border-radius: 8px;
+    padding: 24px;
+    margin-bottom: 24px;
+    text-align: center;
+}
+
+.welcome-card h2 {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #262626;
+}
+
+.welcome-card p {
+    font-size: 14px;
+    color: #8e8e8e;
+}
+
+/* Post Card */
+.post-card {
+    background-color: #ffffff;
+    border: 1px solid #dbdbdb;
+    border-radius: 8px;
+    margin-bottom: 24px;
+    overflow: hidden;
+}
+
+.post-header {
+    display: flex;
+    align-items: center;
+    padding: 14px 16px;
+    gap: 12px;
+}
+
+.post-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.post-user-info {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.post-username {
+    font-size: 14px;
+    font-weight: 600;
+    color: #262626;
+}
+
+.post-time {
+    font-size: 12px;
+    color: #8e8e8e;
+}
+
+.post-image img {
+    width: 100%;
+    display: block;
+}
+
+.post-actions {
+    display: flex;
+    gap: 16px;
+    padding: 12px 16px;
+}
+
+.action-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    color: #262626;
+    transition: color 0.2s;
+}
+
+.action-btn:hover {
+    color: #8e8e8e;
+}
+
+.post-likes {
+    padding: 0 16px 8px;
+    font-size: 14px;
+}
+
+.post-caption {
+    padding: 0 16px 16px;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.post-caption strong {
+    font-weight: 600;
+    margin-right: 4px;
+}
+
+/* Sidebar Right */
+.sidebar-right {
+    display: none;
+}
+
+@media (min-width: 1024px) {
+    .sidebar-right {
+        display: block;
+    }
+}
+
+.profile-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.profile-avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.profile-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.profile-username {
+    font-size: 14px;
+    font-weight: 600;
+    color: #262626;
+}
+
+.profile-name {
+    font-size: 14px;
+    color: #8e8e8e;
+}
+
+.suggestions h4 {
+    font-size: 14px;
+    font-weight: 600;
+    color: #8e8e8e;
+    margin-bottom: 16px;
+}
+
+.suggestion-mutual {
+    font-size: 12px;
+    color: #8e8e8e;
+}
+
+.follow-btn {
+    background: none;
+    border: none;
+    color: #0095f6;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0;
+    margin-left: auto;
+}
+
+.follow-btn:hover {
+    color: #00376b;
+}
+
+/* Responsive */
+@media (max-width: 1023px) {
+    .content-container {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .header-center {
+        display: none;
+    }
+    
+    .header-container {
+        padding: 0 16px;
+    }
+    
+    .main-content {
+        padding: 20px 0;
+    }
+}
