@@ -1,0 +1,100 @@
+/* chat-main.css */
+.root {
+  -fx-background-color: #0f0f0f;
+  -fx-font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Top bar */
+.top-bar {
+  -fx-background-color: rgba(255, 255, 255, 0.1);
+  -fx-backdrop-filter: blur(10px);
+  -fx-padding: 15 20;
+  -fx-border-color: rgba(255, 255, 255, 0.1);
+  -fx-border-width: 0 0 1 0;
+}
+
+/* User info */
+.user-info {
+  -fx-spacing: 10;
+}
+
+.user-avatar {
+  -fx-background-color: linear-gradient(to right, #ff6b6b, #ee5a24);
+  -fx-background-radius: 50%;
+  -fx-min-width: 40px;
+  -fx-min-height: 40px;
+  -fx-max-width: 40px;
+  -fx-max-height: 40px;
+}
+
+.username-label {
+  -fx-text-fill: white;
+  -fx-font-size: 16px;
+  -fx-font-weight: 600;
+}
+
+.status-label {
+  -fx-text-fill: #6bff80;
+  -fx-font-size: 12px;
+}
+
+/* Chat area */
+.chat-container {
+  -fx-background-color: transparent;
+}
+
+.message-bubble {
+  -fx-background-color: rgba(255, 255, 255, 0.1);
+  -fx-background-radius: 15;
+  -fx-padding: 10 15;
+  -fx-border-radius: 15;
+  -fx-border-color: rgba(255, 255, 255, 0.05);
+  -fx-border-width: 1;
+}
+
+.message-bubble.own {
+  -fx-background-color: linear-gradient(to right, #ff6b6b33, #ee5a2433);
+}
+
+.message-text {
+  -fx-text-fill: white;
+  -fx-font-size: 14px;
+  -fx-wrap-text: true;
+}
+
+.message-time {
+  -fx-text-fill: rgba(255, 255, 255, 0.5);
+  -fx-font-size: 11px;
+}
+
+/* Input area */
+.input-area {
+  -fx-background-color: rgba(255, 255, 255, 0.1);
+  -fx-backdrop-filter: blur(10px);
+  -fx-padding: 15 20;
+}
+
+.message-input {
+  -fx-background-color: rgba(255, 255, 255, 0.9);
+  -fx-background-radius: 20;
+  -fx-border-radius: 20;
+  -fx-padding: 12 20;
+  -fx-font-size: 14px;
+  -fx-prompt-text-fill: #666;
+}
+
+.send-button {
+  -fx-background-color: linear-gradient(to right, #ff6b6b, #ee5a24);
+  -fx-background-radius: 50%;
+  -fx-min-width: 45px;
+  -fx-min-height: 45px;
+  -fx-max-width: 45px;
+  -fx-max-height: 45px;
+  -fx-text-fill: white;
+  -fx-font-size: 18px;
+}
+
+.send-button:hover {
+  -fx-background-color: linear-gradient(to right, #ee5a24, #ff6b6b);
+  -fx-effect: dropshadow(gaussian, rgba(255, 107, 107, 0.4), 10, 0.5, 0, 2);
+}

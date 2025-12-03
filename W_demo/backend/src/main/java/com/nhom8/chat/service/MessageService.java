@@ -6,8 +6,11 @@ import com.nhom8.chat.entity.*;
 import com.nhom8.chat.realtime.ChatRealtimeBridge;
 import com.nhom8.chat.repository.*;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,6 +31,7 @@ public class MessageService {
     private final MediaRepository mediaRepo;
     private final AppUserRepository userRepo;
     private final ChatRealtimeBridge realtimeBridge;
+    private final SimpMessagingTemplate messagingTemplate; // 👈 dùng constructor injection luôn
 
     @Transactional
     public MessageResponse sendMessage(Long senderId, MessageRequest req) {
@@ -44,7 +48,6 @@ public class MessageService {
         if (req.getClientCid() != null && !req.getClientCid().isBlank()) {
             Optional<ChatMessage> existed = msgRepo.findBySenderIdAndClientCid(senderId, req.getClientCid());
             if (existed.isPresent()) {
-
                 return mapToResponse(existed.get());
             }
         }
@@ -93,13 +96,6 @@ public class MessageService {
         conv.setLastActivity(Instant.now());
         convRepo.save(conv);
 
-        try {
-            realtimeBridge.broadcastMessage(saved, req.getClientCid());
-        } catch (Exception ex) {
-
-            System.err.println("lỗi realtime  " + ex.getMessage());
-        }
-
         MessageResponse resp = MessageResponse.builder()
                 .id(saved.getId())
                 .conversationId(conv.getId())
@@ -111,6 +107,23 @@ public class MessageService {
                 .clientCid(saved.getClientCid())
                 .isEdited(saved.isEdited())
                 .build();
+
+        // 🔥 1) Đẩy sang ChatRealtime TCP (JavaFX sau này dùng)
+        try {
+            realtimeBridge.broadcastMessage(saved, req.getClientCid());
+        } catch (Exception ex) {
+            System.err.println("lỗi realtime TCP  " + ex.getMessage());
+        }
+
+        // 🔥 2) Đẩy WebSocket cho web UI test
+        try {
+            messagingTemplate.convertAndSend(
+                    "/topic/conversations/" + conv.getId(),
+                    resp
+            );
+        } catch (Exception e) {
+            System.err.println("WebSocket send error: " + e.getMessage());
+        }
 
         return resp;
     }

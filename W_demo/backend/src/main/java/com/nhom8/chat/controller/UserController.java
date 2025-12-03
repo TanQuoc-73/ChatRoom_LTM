@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
+import java.util.List;
 
 @RestController
 @RequestMapping("/users")
@@ -68,11 +69,28 @@ public class UserController {
         }
     }
 
-    @GetMapping("/search")
-    public ResponseEntity<UserProfileDTO> searchUser(@RequestParam String username) {
+    // SỬA LẠI: Đổi tên endpoint search cũ
+    @GetMapping("/search-by-username")
+    public ResponseEntity<UserProfileDTO> searchUserByUsername(@RequestParam String username) {
         Optional<UserProfileDTO> user = userService.findUserByUsername(username);
         return user.map(ResponseEntity::ok)
                   .orElse(ResponseEntity.notFound().build());
+    }
+
+    // GIỮ LẠI: Search mới với nhiều kết quả
+    @GetMapping("/search")
+    public ResponseEntity<List<UserProfileDTO>> searchUsers(
+            @RequestParam String keyword,
+            @RequestParam(defaultValue = "10") int limit) {
+        
+        List<UserProfileDTO> users = userService.searchUsers(keyword, limit);
+        return ResponseEntity.ok(users);
+    }
+
+    @GetMapping("/{userId}")
+    public ResponseEntity<UserProfileDTO> getUserById(@PathVariable Long userId) {
+        UserProfileDTO user = userService.getUserProfile(userId);
+        return user != null ? ResponseEntity.ok(user) : ResponseEntity.notFound().build();
     }
 
     private Long getUserIdFromToken(String authorization) {

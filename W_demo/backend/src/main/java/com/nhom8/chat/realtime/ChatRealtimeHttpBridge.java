@@ -1,42 +1,26 @@
 package com.nhom8.chat.realtime;
 
-import com.nhom8.chat.entity.ChatMessage;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
-import java.util.Map;
+
+import com.nhom8.chat.entity.ChatMessage;
+
+import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor
-public class ChatRealtimeHttpBridge implements ChatRealtimeBridge {
+public class ChatRealtimeHttpBridge {
 
-    private final RestTemplate restTemplate; 
-    private final String realtimeBase = "http://localhost:9000/api/realtime"; 
+    // inject bridge “thật” dùng chat-realtime
+    private final ChatRealtimeBridge chatRealtimeBridge;
 
-    @Override
+    // Service / controller backend vẫn gọi class này
+    // nhưng bên trong nó sẽ gọi vào ChatRealtimeBridge (không còn HTTP)
+
     public void broadcastMessage(ChatMessage msg, String clientCid) {
-        var body = Map.of(
-            "messageId", msg.getId(),
-            "conversationId", msg.getConversation().getId(),
-            "senderId", msg.getSender().getId(),
-            "content", msg.getContent(),
-            "clientCid", clientCid,
-            "sentAt", msg.getSentAt()
-        );
-        try {
-            restTemplate.postForObject(realtimeBase + "/message", body, Void.class);
-        } catch (Exception e) {
-            System.err.println("Realtime HTTP lỗi " + e.getMessage());
-        }
+        chatRealtimeBridge.broadcastMessage(msg, clientCid);
     }
 
-    @Override
     public void notifyRead(Long messageId, Long userId) {
-        var body = Map.of("messageId", messageId, "userId", userId);
-        try {
-            restTemplate.postForObject(realtimeBase + "/read", body, Void.class);
-        } catch (Exception e) {
-            System.err.println("Realtime HTTP lỗi " + e.getMessage());
-        }
+        chatRealtimeBridge.notifyRead(messageId, userId);
     }
 }

@@ -43,10 +43,22 @@
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
 
+		<dependency>
+		 <groupId>org.springframework.boot</groupId>
+		 <artifactId>spring-boot-starter-websocket</artifactId>
+		</dependency>
+
+
+<dependency>
+    <groupId>org.springframework</groupId>
+    <artifactId>spring-messaging</artifactId>
+</dependency>
+
 		       <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
+
 
 		<dependency>
 			<groupId>com.microsoft.sqlserver</groupId>
@@ -63,6 +75,11 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+    <groupId>chat</groupId>
+    <artifactId>chat-system</artifactId>  <!-- đúng y như POM module kia -->
+    <version>1.0.0</version>
+</dependency>
 	</dependencies>
 
 	<build>

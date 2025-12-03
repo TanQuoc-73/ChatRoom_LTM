@@ -13,6 +13,7 @@ import com.nhom8.chat.dto.LoginRequest;
 import com.nhom8.chat.dto.RegisterRequest;
 import com.nhom8.chat.entity.AppUser;
 import com.nhom8.chat.entity.UserSession;
+import com.nhom8.chat.entity.enums.DeviceType;
 import com.nhom8.chat.service.AuthService;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -26,7 +27,7 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
+    public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request, HttpServletRequest httpRequest) {
         try {
             AppUser user = authService.register(
                 request.getUsername(),
@@ -37,11 +38,20 @@ public class AuthController {
                 request.getLastName()
             );
 
+            // ← TỰ ĐỘNG TẠO SESSION SAU KHI ĐĂNG KÝ (rất quan trọng!)
+            UserSession session = authService.login(
+                    user.getUsername(),
+                    request.getPassword(),  // pass vẫn còn nguyên, chưa băm
+                    DeviceType.WEB,
+                    httpRequest.getHeader("User-Agent"),
+                    httpRequest.getRemoteAddr()
+            );
+
             return ResponseEntity.ok(AuthResponse.success(
                 "Đăng ký thành kông", 
                 user.getId(), 
                 user.getUsername(),
-                null
+                session.getSessionToken()
             ));
             
         } catch (IllegalArgumentException e) {

@@ -43,8 +43,26 @@ public SecurityFilterChain filterChain(HttpSecurity http, SessionTokenFilter fil
                 "/images/**",
                 "/favicon.ico",
                 "/", "/index.html",
-                "/auth/**"   // giữ cho auth public
+                "/auth/**" 
+                    
             ).permitAll()
+            .requestMatchers("/api/uploads/**").permitAll()
+            .requestMatchers("/uploads/**").permitAll()
+            .requestMatchers("/api/friends/**").permitAll()
+            .requestMatchers("/friends/**").permitAll()
+            .requestMatchers(
+                    "/api/v1/auth/**",
+                    "/v3/api-docs/**",
+                    "/swagger-ui/**",
+                    "/swagger-ui.html",
+                    "/webjars/**",
+                    "/ws/**",
+                    "/ws-native/**",
+                    "/ws-chat/**",
+                    "/api/v1/realtime/**"
+                ).permitAll()
+                 .requestMatchers("/ws/**", "/ws-native/**", "/ws-chat/**").permitAll()
+                
             .anyRequest().authenticated()
         )
         .addFilterBefore(filter, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class);
