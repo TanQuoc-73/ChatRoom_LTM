@@ -3,22 +3,16 @@ package com.nhom8.chat.controller;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import com.nhom8.chat.dto.FriendOnlineDTO;
 import com.nhom8.chat.dto.FriendRequestDTO;
 import com.nhom8.chat.dto.FriendshipDTO;
 import com.nhom8.chat.service.FriendshipService;
 
 import lombok.RequiredArgsConstructor;
 
+// controller quản lý quan hệ bạn bè
 @RestController
 @RequestMapping("/friends")
 @RequiredArgsConstructor
@@ -26,58 +20,64 @@ public class FriendController {
 
     private final FriendshipService friendshipService;
 
+    // gửi lời mời kết bạn
     @PostMapping("/requests")
     public ResponseEntity<FriendshipDTO> sendFriendRequest(
             @RequestParam Long currentUserId,
             @RequestBody FriendRequestDTO requestDTO) {
+
         try {
-            FriendshipDTO result = friendshipService.sendFriendRequest(currentUserId, requestDTO);
-            return ResponseEntity.ok(result);
+            return ResponseEntity.ok(friendshipService.sendFriendRequest(currentUserId, requestDTO));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().build();
         }
     }
 
+    // chấp nhận lời mời kết bạn
     @PutMapping("/requests/{friendshipId}/accept")
     public ResponseEntity<FriendshipDTO> acceptFriendRequest(
             @RequestParam Long currentUserId,
             @PathVariable Long friendshipId) {
+
         try {
-            FriendshipDTO result = friendshipService.acceptFriendRequest(currentUserId, friendshipId);
-            return ResponseEntity.ok(result);
+            return ResponseEntity.ok(friendshipService.acceptFriendRequest(currentUserId, friendshipId));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().build();
         }
     }
 
+    // từ chối lời mời kết bạn
     @PutMapping("/requests/{friendshipId}/reject")
     public ResponseEntity<FriendshipDTO> rejectFriendRequest(
             @RequestParam Long currentUserId,
             @PathVariable Long friendshipId) {
+
         try {
-            FriendshipDTO result = friendshipService.rejectFriendRequest(currentUserId, friendshipId);
-            return ResponseEntity.ok(result);
+            return ResponseEntity.ok(friendshipService.rejectFriendRequest(currentUserId, friendshipId));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().build();
         }
     }
 
+    // chặn người dùng
     @PostMapping("/block")
     public ResponseEntity<FriendshipDTO> blockUser(
             @RequestParam Long currentUserId,
             @RequestParam Long targetUserId) {
+
         try {
-            FriendshipDTO result = friendshipService.blockUser(currentUserId, targetUserId);
-            return ResponseEntity.ok(result);
+            return ResponseEntity.ok(friendshipService.blockUser(currentUserId, targetUserId));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().build();
         }
     }
 
+    // bỏ chặn người dùng
     @DeleteMapping("/block")
     public ResponseEntity<Void> unblockUser(
             @RequestParam Long currentUserId,
             @RequestParam Long targetUserId) {
+
         try {
             friendshipService.unblockUser(currentUserId, targetUserId);
             return ResponseEntity.ok().build();
@@ -86,10 +86,12 @@ public class FriendController {
         }
     }
 
+    // xóa bạn bè
     @DeleteMapping("/{friendshipId}")
     public ResponseEntity<Void> removeFriend(
             @RequestParam Long currentUserId,
             @PathVariable Long friendshipId) {
+
         try {
             friendshipService.removeFriend(currentUserId, friendshipId);
             return ResponseEntity.ok().build();
@@ -98,29 +100,31 @@ public class FriendController {
         }
     }
 
+    // lấy danh sách lời mời kết bạn
     @GetMapping("/requests")
     public ResponseEntity<List<FriendshipDTO>> getFriendRequests(@RequestParam Long currentUserId) {
-        List<FriendshipDTO> requests = friendshipService.getFriendRequests(currentUserId);
-        return ResponseEntity.ok(requests);
+        return ResponseEntity.ok(friendshipService.getFriendRequests(currentUserId));
     }
 
+    // lấy danh sách bạn bè và trạng thái online
     @GetMapping
-    public ResponseEntity<List<FriendshipDTO>> getFriends(@RequestParam Long currentUserId) {
-        List<FriendshipDTO> friends = friendshipService.getFriends(currentUserId);
-        return ResponseEntity.ok(friends);
+    public ResponseEntity<List<FriendOnlineDTO>> getFriends(@RequestParam Long currentUserId) {
+        return ResponseEntity.ok(friendshipService.getFriends(currentUserId));
     }
 
+    // lấy danh sách người bị chặn
     @GetMapping("/blocked")
     public ResponseEntity<List<FriendshipDTO>> getBlockedUsers(@RequestParam Long currentUserId) {
-        List<FriendshipDTO> blocked = friendshipService.getBlockedUsers(currentUserId);
-        return ResponseEntity.ok(blocked);
+        return ResponseEntity.ok(friendshipService.getBlockedUsers(currentUserId));
     }
 
+    // kiểm tra trạng thái quan hệ giữa hai user
     @GetMapping("/status")
     public ResponseEntity<FriendshipDTO> getFriendshipStatus(
             @RequestParam Long user1Id,
             @RequestParam Long user2Id) {
-        FriendshipDTO friendship = friendshipService.getFriendshipBetweenUsers(user1Id, user2Id);
-        return friendship != null ? ResponseEntity.ok(friendship) : ResponseEntity.notFound().build();
+
+        FriendshipDTO dto = friendshipService.getFriendshipBetweenUsers(user1Id, user2Id);
+        return dto != null ? ResponseEntity.ok(dto) : ResponseEntity.notFound().build();
     }
 }

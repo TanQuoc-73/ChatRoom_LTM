@@ -41,6 +41,8 @@ public class MediaMapper {
         dto.setThumbnailPath(media.getThumbnailPath());
         dto.setTemp(media.isTemp());
         dto.setUploadedAt(media.getUploadedAt());
+        dto.setCaption(media.getCaption());
+        dto.setVisibility(media.getVisibility());
 
         return dto;
     }

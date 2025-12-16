@@ -1,5 +1,15 @@
 package com.nhom8.chat.service;
 
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.nhom8.chat.dto.AddMemberRequest;
 import com.nhom8.chat.dto.ConversationCreateRequest;
 import com.nhom8.chat.entity.AppUser;
@@ -7,20 +17,17 @@ import com.nhom8.chat.entity.Conversation;
 import com.nhom8.chat.entity.ConversationMember;
 import com.nhom8.chat.entity.ConversationMemberId;
 import com.nhom8.chat.entity.enums.ConversationType;
-import com.nhom8.chat.repository.*;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import com.nhom8.chat.repository.AppUserRepository;
+import com.nhom8.chat.repository.ChatMessageRepository;
+import com.nhom8.chat.repository.ConversationMemberRepository;
+import com.nhom8.chat.repository.ConversationRepository;
+import com.nhom8.chat.repository.MessageAttachmentRepository;
+import com.nhom8.chat.repository.MessageStatusRepository;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
@@ -81,49 +88,53 @@ public class ConversationService {
         return saved;
     }
 
-    @Transactional
-    public Conversation createGroupConversation(ConversationCreateRequest req, Long creatorId) {
-        // Kiểm tra số lượng thành viên tối thiểu
-        if (req.getMemberIds() == null || req.getMemberIds().size() < 2) {
-            throw new IllegalArgumentException("Nhóm chat cần ít nhất 3 thành viên (bao gồm cả bạn)");
-        }
-        
-        // Kiểm tra tất cả thành viên đều là bạn bè
-        List<Long> allMembers = new ArrayList<>(req.getMemberIds());
-        allMembers.add(creatorId);
-        
-        for (int i = 0; i < allMembers.size(); i++) {
-            for (int j = i + 1; j < allMembers.size(); j++) {
-                if (!friendshipService.areFriends(allMembers.get(i), allMembers.get(j))) {
-                    throw new IllegalArgumentException("Tất cả thành viên phải là bạn bè của nhau");
-                }
-            }
-        }
-        
-        // Tạo conversation
-        Conversation conversation = Conversation.builder()
-                .type(ConversationType.GROUP)
-                .name(req.getName())
-                .description(req.getDescription())
-                .createdBy(userRepo.findById(creatorId).orElseThrow(() -> new IllegalArgumentException("User không tồn tại")))
-                .isPublic(req.getIsPublic())
-                .maxMembers(req.getMaxMembers())
-                .lastActivity(Instant.now())
-                .createdAt(Instant.now())
-                .updatedAt(Instant.now())
-                .build();
-        
-        Conversation savedConv = convRepo.save(conversation);
-        
-        // Thêm tất cả thành viên
-        for (Long memberId : allMembers) {
-            String role = memberId.equals(creatorId) ? "CREATOR" : "MEMBER";
-            addMemberToConversation(savedConv.getId(), memberId, creatorId, role);
-        }
-        
-        return savedConv;
+@Transactional
+public Conversation createGroupConversation(ConversationCreateRequest req, Long creatorId) {
+    // Kiểm tra số lượng thành viên tối thiểu (bao gồm cả người tạo)
+    if (req.getMemberIds() == null || req.getMemberIds().size() < 1) {
+        throw new IllegalArgumentException("Nhóm chat cần ít nhất 2 thành viên (bao gồm cả bạn)");
     }
-
+    
+    // Tạo danh sách tất cả thành viên (bao gồm người tạo)
+    List<Long> allMembers = new ArrayList<>(req.getMemberIds());
+    
+    // Đảm bảo creator có trong danh sách
+    if (!allMembers.contains(creatorId)) {
+        allMembers.add(creatorId);
+    }
+    
+    // BỎ KIỂM TRA BẠN BÈ - không cần phải là bạn bè nữa
+    
+    // Kiểm tra tất cả thành viên có tồn tại không
+    for (Long memberId : allMembers) {
+        if (!userRepo.existsById(memberId)) {
+            throw new IllegalArgumentException("Người dùng không tồn tại: " + memberId);
+        }
+    }
+    
+    // Tạo conversation
+    Conversation conversation = Conversation.builder()
+            .type(ConversationType.GROUP)
+            .name(req.getName())
+            .description(req.getDescription())
+            .createdBy(userRepo.findById(creatorId).orElseThrow(() -> new IllegalArgumentException("User không tồn tại")))
+            .isPublic(req.getIsPublic() != null ? req.getIsPublic() : true)
+            .maxMembers(req.getMaxMembers() != null ? req.getMaxMembers() : 200)
+            .lastActivity(Instant.now())
+            .createdAt(Instant.now())
+            .updatedAt(Instant.now())
+            .build();
+    
+    Conversation savedConv = convRepo.save(conversation);
+    
+    // Thêm tất cả thành viên
+    for (Long memberId : allMembers) {
+        String role = memberId.equals(creatorId) ? "CREATOR" : "MEMBER";
+        addMemberToConversation(savedConv.getId(), memberId, creatorId, role);
+    }
+    
+    return savedConv;
+}
     @Transactional
     public Conversation getOrCreateDirectConversation(Long user1Id, Long user2Id) {
         // Kiểm tra đã có conversation DIRECT chưa
@@ -378,36 +389,36 @@ public class ConversationService {
     public Optional<Conversation> getConversationOpt(Long id) {
         return convRepo.findById(id);
     }
-    @Transactional
-    public void addMember(Long conversationId, AddMemberRequest req, Long actorId) {
-        Conversation conv = convRepo.findById(conversationId)
-                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy cuộc trò chuyện"));
+   @Transactional
+public void addMember(Long conversationId, AddMemberRequest req, Long actorId) {
+    Conversation conv = convRepo.findById(conversationId)
+            .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy cuộc trò chuyện"));
 
-        AppUser userToAdd = userRepo.findById(req.getUserId())
-                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy người dùng để thêm"));
+    AppUser userToAdd = userRepo.findById(req.getUserId())
+            .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy người dùng để thêm"));
 
-        if (!isCreatorOrAdmin(conversationId, actorId)) {
-            throw new SecurityException("Không được phép thêm thành viên");
-        }
-
-        Long max = conv.getMaxMembers() == null ? Long.MAX_VALUE : conv.getMaxMembers().longValue();
-        long currentCount = memberRepo.countByIdConversationId(conversationId);
-        if (currentCount >= max) {
-            throw new IllegalStateException("Đã đầy thành viên");
-        }
-
-        ConversationMemberId cmId = new ConversationMemberId(conversationId, userToAdd.getId());
-        if (memberRepo.existsById(cmId)) {
-            ConversationMember existing = memberRepo.findById(cmId).get();
-            if (req.getRole() != null) existing.setRole(req.getRole());
-            if (req.getNickname() != null) existing.setNickname(req.getNickname());
-            memberRepo.save(existing);
-            return;
-        }
-
-        addMemberToConversation(conversationId, userToAdd.getId(), actorId, 
-                               req.getRole() == null ? "MEMBER" : req.getRole());
+    if (!isCreatorOrAdmin(conversationId, actorId)) {
+        throw new SecurityException("Không được phép thêm thành viên");
     }
+
+    Long max = conv.getMaxMembers() == null ? Long.MAX_VALUE : conv.getMaxMembers().longValue();
+    long currentCount = memberRepo.countByIdConversationId(conversationId);
+    if (currentCount >= max) {
+        throw new IllegalStateException("Đã đầy thành viên");
+    }
+
+    ConversationMemberId cmId = new ConversationMemberId(conversationId, userToAdd.getId());
+    if (memberRepo.existsById(cmId)) {
+        ConversationMember existing = memberRepo.findById(cmId).get();
+        if (req.getRole() != null) existing.setRole(req.getRole());
+        if (req.getNickname() != null) existing.setNickname(req.getNickname());
+        memberRepo.save(existing);
+        return;
+    }
+
+    addMemberToConversation(conversationId, userToAdd.getId(), actorId, 
+                           req.getRole() == null ? "MEMBER" : req.getRole());
+}
 
     @Transactional
     public void removeMember(Long conversationId, Long removeUserId, Long actorId) {
@@ -526,18 +537,18 @@ public class ConversationService {
         }
         
         // Kiểm tra tất cả thành viên đều là bạn bè
-        if (req.getMemberIds() != null) {
-            List<Long> allMembers = new ArrayList<>(req.getMemberIds());
-            allMembers.add(creatorId);
-            
-            for (int i = 0; i < allMembers.size(); i++) {
-                for (int j = i + 1; j < allMembers.size(); j++) {
-                    if (!friendshipService.areFriends(allMembers.get(i), allMembers.get(j))) {
-                        throw new IllegalArgumentException("Tất cả thành viên phải là bạn bè của nhau");
-                    }
-                }
+         if (req.getMemberIds() != null) {
+        List<Long> allMembers = new ArrayList<>(req.getMemberIds());
+        allMembers.add(creatorId);
+        
+        for (Long memberId : allMembers) {
+            if (!userRepo.existsById(memberId)) {
+                throw new IllegalArgumentException("Người dùng không tồn tại: " + memberId);
             }
         }
+        
+        // BỎ KIỂM TRA BẠN BÈ - không yêu cầu các thành viên phải là bạn bè
+    }
     }
     
     public boolean areFriends(Long user1Id, Long user2Id) {

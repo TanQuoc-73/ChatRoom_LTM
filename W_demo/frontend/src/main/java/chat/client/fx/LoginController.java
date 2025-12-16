@@ -40,6 +40,8 @@ public class LoginController {
     @FXML private Button loginButton;
     @FXML private Button togglePasswordBtn;
     @FXML private Label messageLabel;
+    @FXML private Hyperlink forgotPasswordLink;
+    @FXML private Hyperlink registerLink;
 
     private MediaPlayer mediaPlayer;
     private final HttpClient httpClient = HttpClient.newBuilder()

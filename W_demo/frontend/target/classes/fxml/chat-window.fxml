@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox fx:id="chatContainer" xmlns="http://javafx.com/javafx/8" 
+      xmlns:fx="http://javafx.com/fxml/1" 
+      fx:controller="chat.client.fx.ChatWindowController"
+      spacing="0" styleClass="chat-window">
+    
+    <!-- Header với các nút điều khiển -->
+    <HBox fx:id="headerBox" styleClass="chat-header" spacing="5">
+        <Label fx:id="chatTitle" styleClass="chat-title" HBox.hgrow="ALWAYS"/>
+        <Button fx:id="btnMinimize" text="−" styleClass="chat-minimize-btn" 
+                onAction="#onMinimize"/>
+        <Button fx:id="btnClose" text="✕" styleClass="chat-close-btn" 
+                onAction="#onClose"/>
+    </HBox>
+    
+    <!-- Vùng hiển thị tin nhắn -->
+    <ListView fx:id="messagesList" styleClass="chat-messages" VBox.vgrow="ALWAYS"/>
+    
+    <!-- Vùng nhập tin nhắn -->
+    <HBox fx:id="inputBox" styleClass="chat-input-area" spacing="5">
+        <TextArea fx:id="messageInput" HBox.hgrow="ALWAYS" 
+                  promptText="Nhập tin nhắn..." wrapText="true"/>
+        <Button text="📎" styleClass="attach-btn" onAction="#onAttachFile"/>
+        <Button fx:id="btnSend" text="Gửi" styleClass="send-btn" 
+                onAction="#onSendMessage"/>
+    </HBox>
+</VBox>

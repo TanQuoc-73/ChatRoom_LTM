@@ -1,5 +1,7 @@
 package com.nhom8.chat.realtime;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 
 import com.nhom8.chat.entity.ChatMessage;
@@ -12,9 +14,8 @@ public class ChatRealtimeHttpBridge {
 
     // inject bridge “thật” dùng chat-realtime
     private final ChatRealtimeBridge chatRealtimeBridge;
+    
 
-    // Service / controller backend vẫn gọi class này
-    // nhưng bên trong nó sẽ gọi vào ChatRealtimeBridge (không còn HTTP)
 
     public void broadcastMessage(ChatMessage msg, String clientCid) {
         chatRealtimeBridge.broadcastMessage(msg, clientCid);
@@ -22,5 +23,13 @@ public class ChatRealtimeHttpBridge {
 
     public void notifyRead(Long messageId, Long userId) {
         chatRealtimeBridge.notifyRead(messageId, userId);
+    }
+      
+    public void userJoinConversation(Long userId, Long conversationId) {
+        chatRealtimeBridge.userJoinConversation(userId, conversationId);
+    }
+
+    public void userLeaveConversation(Long userId, Long conversationId) {
+        chatRealtimeBridge.userLeaveConversation(userId, conversationId);
     }
 }

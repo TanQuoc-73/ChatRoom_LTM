@@ -1692,22 +1692,22 @@ function renderUserSearchItem(user) {
   avatar.style.backgroundPosition = "center";
   avatar.style.border = "2px solid rgba(0,0,0,0.25)";
 
-  const avatarUrl = user.avatarUrl || ""; // ktra user_avatar
+  const avatarUrl = user.avatarUrl || "";
   if (avatarUrl) {
     avatar.style.backgroundImage = `url('${avatarUrl}')`;
   }
 
   const info = document.createElement("div");
 
+  // SỬA: Kiểm tra cả userId và id
+  const userId = user.userId || user.id;
   const displayName = user.displayName || user.username || "Người dùng";
   const username = user.username || "";
 
   info.innerHTML = `
       <div style="font-weight:600;">${escapeHtml(displayName)}</div>
       <div style="font-size:12px;color:var(--muted);">
-        ${username ? `${escapeHtml(username)} • ` : ""}ID: ${
-    user.userId || "N/A"
-  }
+        ${username ? `${escapeHtml(username)} • ` : ""}ID: ${userId || "N/A"}
       </div>
   `;
 
@@ -1723,48 +1723,70 @@ function renderUserSearchItem(user) {
   btn.style.fontSize = "13px";
   btn.style.background = "var(--accent)";
   btn.style.color = "#fff";
+
   btn.addEventListener("click", async (e) => {
     e.stopPropagation();
     console.log("Friend request clicked for user:", user);
-    // ktra bạn bè rồi thì thui
-    try {
-      const friendshipStatus = await apiFetch(
-        `/friends/status?user1Id=${currentUserId}&user2Id=${user.userId}`
-      );
 
-      if (friendshipStatus && friendshipStatus.status === "ACCEPTED") {
-        alert(`Bạn và ${user.displayName || user.username} đã là bạn bè`);
-        return;
-      }
+    // SỬA: Dùng biến userId đã xác định
+    const targetUserId = user.userId || user.id;
 
-      if (friendshipStatus && friendshipStatus.status === "PENDING") {
-        alert(
-          `Đã gửi lời mời kết bạn tới ${user.displayName || user.username}`
-        );
-        return;
-      }
-    } catch (statusError) {
-      console.log("Could not check friendship status, proceeding...");
-    }
-
-    const userId = user.userId;
-    if (!userId) {
+    if (!targetUserId) {
       console.error("No user ID found in:", user);
       alert("Người dùng này không có ID hợp lệ");
       return;
     }
 
-    const targetId = Number(userId);
+    const targetId = Number(targetUserId);
     if (isNaN(targetId) || targetId <= 0) {
-      alert("ID người dùng không hợp lệ: " + userId);
+      alert("ID người dùng không hợp lệ: " + targetUserId);
       return;
     }
 
-    sendFriendRequest(targetId);
+    // SỬA: Thêm /api prefix
+    try {
+      const friendshipStatus = await apiFetch(
+        `/friends/status?user1Id=${currentUserId}&user2Id=${targetId}` // THÊM /api
+      );
+
+      if (friendshipStatus && friendshipStatus.status === "ACCEPTED") {
+        alert(`Bạn và ${displayName} đã là bạn bè`);
+        btn.textContent = "Đã là bạn";
+        btn.style.background = "#27ae60";
+        btn.disabled = true;
+        return;
+      }
+
+      if (friendshipStatus && friendshipStatus.status === "PENDING") {
+        alert(`Đã gửi lời mời kết bạn tới ${displayName}`);
+        btn.textContent = "Đã gửi lời mời";
+        btn.style.background = "#f39c12";
+        btn.disabled = true;
+        return;
+      }
+
+      // THÊM: Xử lý các trạng thái khác
+      if (friendshipStatus && friendshipStatus.status === "BLOCKED") {
+        alert(`Không thể kết bạn: ${displayName} đã bị chặn`);
+        btn.textContent = "Đã chặn";
+        btn.style.background = "#e74c3c";
+        btn.disabled = true;
+        return;
+      }
+    } catch (statusError) {
+      console.log("Could not check friendship status:", statusError);
+      // Nếu lỗi 404 (không tìm thấy friendship), tiếp tục gửi request
+      if (statusError.status !== 404) {
+        console.log("Proceeding to send request anyway...");
+      }
+    }
+
+    // Gửi friend request
+    sendFriendRequest(targetId, btn, displayName);
   });
 
   left.addEventListener("click", () => {
-    const userId = user.userId;
+    const userId = user.userId || user.id;
     if (userId) {
       window.location.href = `/api/public/html/profile.html?userId=${userId}`;
     } else {
@@ -1777,19 +1799,16 @@ function renderUserSearchItem(user) {
 
   return li;
 }
-async function sendFriendRequest(targetUserId) {
+async function sendFriendRequest(
+  targetUserId,
+  buttonElement = null,
+  displayName = ""
+) {
   if (!currentUserId) {
     alert("Không xác định được user hiện tại");
     return;
   }
-  if (
-    !targetUserId ||
-    targetUserId === "undefined" ||
-    targetUserId === "null"
-  ) {
-    alert("ID người dùng không hợp lệ");
-    return;
-  }
+
   const targetId = Number(targetUserId);
   if (isNaN(targetId) || targetId <= 0) {
     alert("ID người dùng phải là số dương");
@@ -1811,8 +1830,10 @@ async function sendFriendRequest(targetUserId) {
       targetUserId: targetId,
       requestBody,
     });
+
+    // SỬA: Thêm /api prefix
     const result = await apiFetch(
-      `/friends/requests?currentUserId=${currentUserId}`,
+      `/friends/requests?currentUserId=${currentUserId}`, // THÊM /api
       {
         method: "POST",
         body: JSON.stringify(requestBody),
@@ -1823,6 +1844,14 @@ async function sendFriendRequest(targetUserId) {
     );
 
     console.log("Friend request successful:", result);
+
+    // Cập nhật UI nếu có button element
+    if (buttonElement) {
+      buttonElement.textContent = "Đã gửi lời mời";
+      buttonElement.style.background = "#f39c12";
+      buttonElement.disabled = true;
+    }
+
     alert("Đã gửi lời mời kết bạn thành công!");
   } catch (e) {
     console.error("Send friend request error:", e);
@@ -1830,12 +1859,26 @@ async function sendFriendRequest(targetUserId) {
     let errorMsg = "Lỗi không xác định";
     if (e.body) {
       if (typeof e.body === "string") {
-        errorMsg = e.body;
+        try {
+          const parsed = JSON.parse(e.body);
+          errorMsg = parsed.message || parsed.error || e.body;
+        } catch {
+          errorMsg = e.body;
+        }
       } else if (e.body.message) {
         errorMsg = e.body.message;
       }
     } else if (e.status) {
-      errorMsg = `HTTP ${e.status}`;
+      if (e.status === 400) {
+        errorMsg =
+          "Yêu cầu không hợp lệ (có thể đã là bạn bè hoặc đã gửi lời mời)";
+      } else if (e.status === 404) {
+        errorMsg = "Người dùng không tồn tại";
+      } else if (e.status === 403) {
+        errorMsg = "Không có quyền thực hiện";
+      } else {
+        errorMsg = `Lỗi HTTP ${e.status}`;
+      }
     }
 
     alert("Gửi lời mời lỗi: " + errorMsg);

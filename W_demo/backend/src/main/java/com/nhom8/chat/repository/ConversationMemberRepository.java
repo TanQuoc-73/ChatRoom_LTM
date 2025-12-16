@@ -28,14 +28,10 @@ public interface ConversationMemberRepository extends JpaRepository<Conversation
     
     @Query("SELECT cm FROM ConversationMember cm WHERE cm.id.conversationId = :conversationId AND cm.role IN ('CREATOR', 'ADMIN')")
     List<ConversationMember> findAdminsByConversationId(@Param("conversationId") Long conversationId);
-    
-    // THÊM: @Transactional
     @Modifying
     @Transactional
     @Query("DELETE FROM ConversationMember cm WHERE cm.id.conversationId = :conversationId")
     int deleteByConversationId(@Param("conversationId") Long conversationId);
-    
-    // THÊM: Method để kiểm tra nhanh
     @Query("SELECT cm.role FROM ConversationMember cm WHERE cm.id.conversationId = :conversationId AND cm.id.userId = :userId")
     Optional<String> findRoleByConversationIdAndUserId(@Param("conversationId") Long conversationId, 
                                                        @Param("userId") Long userId);

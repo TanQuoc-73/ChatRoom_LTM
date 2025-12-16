@@ -13,13 +13,11 @@ public interface MessageAttachmentRepository extends JpaRepository<MessageAttach
     
     List<MessageAttachment> findByMessageIdOrderBySortOrderAsc(Long messageId);
 
-    // THÊM: @Modifying và @Transactional
     @Modifying
     @Transactional
     @Query("DELETE FROM MessageAttachment ma WHERE ma.message.conversation.id = :conversationId")
     int deleteByConversationId(@Param("conversationId") Long conversationId);
     
-    // THÊM: Method để kiểm tra
     @Query("SELECT COUNT(ma) FROM MessageAttachment ma WHERE ma.message.conversation.id = :conversationId")
     long countByConversationId(@Param("conversationId") Long conversationId);
 }

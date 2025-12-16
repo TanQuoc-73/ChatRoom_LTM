@@ -20,12 +20,15 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
+// controller xử lý các chức năng xác thực người dùng
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
 public class AuthController {
+
     private final AuthService authService;
 
+    // api đăng ký tài khoản
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request, HttpServletRequest httpRequest) {
         try {
@@ -38,10 +41,10 @@ public class AuthController {
                 request.getLastName()
             );
 
-            // ← TỰ ĐỘNG TẠO SESSION SAU KHI ĐĂNG KÝ (rất quan trọng!)
+            // tự động đăng nhập và tạo session sau khi đăng ký
             UserSession session = authService.login(
                     user.getUsername(),
-                    request.getPassword(),  // pass vẫn còn nguyên, chưa băm
+                    request.getPassword(),
                     DeviceType.WEB,
                     httpRequest.getHeader("User-Agent"),
                     httpRequest.getRemoteAddr()
@@ -62,6 +65,7 @@ public class AuthController {
         }
     }
 
+    // api đăng nhập
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request, 
                                             HttpServletRequest httpRequest) {
@@ -89,6 +93,7 @@ public class AuthController {
         }
     }
 
+    // api đăng xuất
     @PostMapping("/logout")
     public ResponseEntity<AuthResponse> logout(@RequestHeader("Authorization") String authorization) {
         try {
@@ -105,6 +110,7 @@ public class AuthController {
         }
     }
 
+    // api kiểm tra tính hợp lệ của session
     @GetMapping("/validate")
     public ResponseEntity<AuthResponse> validateSession(@RequestHeader("Authorization") String authorization) {
         try {
@@ -128,6 +134,7 @@ public class AuthController {
         }
     }
 
+    // tách session token từ header authorization
     private String extractSessionToken(String authorization) {
         if (authorization != null && authorization.startsWith("Bearer ")) {
             return authorization.substring(7);

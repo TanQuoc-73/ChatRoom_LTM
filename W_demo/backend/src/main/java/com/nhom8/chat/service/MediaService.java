@@ -1,15 +1,5 @@
 package com.nhom8.chat.service;
 
-import com.nhom8.chat.entity.Media;
-import com.nhom8.chat.entity.AppUser;
-import com.nhom8.chat.entity.enums.MediaType;
-import com.nhom8.chat.repository.MediaRepository;
-import com.nhom8.chat.repository.AppUserRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -17,6 +7,18 @@ import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.nhom8.chat.entity.AppUser;
+import com.nhom8.chat.entity.Media;
+import com.nhom8.chat.entity.enums.MediaType;
+import com.nhom8.chat.repository.AppUserRepository;
+import com.nhom8.chat.repository.MediaRepository;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
 @Transactional
@@ -102,4 +104,8 @@ public class MediaService {
         int lastDotIndex = fileName.lastIndexOf(".");
         return lastDotIndex > 0 ? fileName.substring(lastDotIndex) : "";
     }
+
+    public Media save(Media media) {
+    return mediaRepository.save(media);
+}
 }

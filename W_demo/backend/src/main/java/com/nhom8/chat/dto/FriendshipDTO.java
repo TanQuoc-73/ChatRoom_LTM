@@ -4,9 +4,16 @@ import java.time.Instant;
 
 import com.nhom8.chat.entity.enums.FriendshipStatus;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+
 public class FriendshipDTO {
     private Long id;
     private Long user1Id;
@@ -18,4 +25,5 @@ public class FriendshipDTO {
     private String actionUserName;
     private Instant createdAt;
     private Instant updatedAt;
+    
 }

@@ -28,4 +28,10 @@ public class SessionStore {
     public static void setUsername(String name) {
         username = name;
     }
+
+    public static void clear() {
+        sessionToken = null;
+        userId = 0;
+        username = null;
+    }
 }

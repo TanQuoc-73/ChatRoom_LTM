@@ -21,17 +21,23 @@ public class MediaController {
     private final AuthService authService;
 
     @PostMapping("/upload")
-    public ResponseEntity<MediaDTO> uploadMedia(
-            @RequestHeader("Authorization") String authorization,
-            @RequestParam("file") MultipartFile file,
-            @RequestParam("mediaType") MediaType mediaType) {
+public ResponseEntity<MediaDTO> uploadMedia(
+        @RequestHeader("Authorization") String authorization,
+        @RequestParam("file") MultipartFile file,
+        @RequestParam("mediaType") MediaType mediaType,
+        @RequestParam(value = "caption", required = false) String caption) {
 
-        Long userId = extractUserId(authorization);
+    Long userId = extractUserId(authorization);
+    var saved = mediaService.uploadMedia(userId, file, mediaType);
 
-        var saved = mediaService.uploadMedia(userId, file, mediaType);
-
-        return ResponseEntity.ok(MediaMapper.toDTO(saved));
+    if (mediaType == MediaType.PHOTO && caption != null && !caption.isBlank()) {
+        saved.setCaption(caption.trim());
+        saved.setVisibility("PUBLIC");
+        saved = mediaService.save(saved); 
     }
+
+    return ResponseEntity.ok(MediaMapper.toDTO(saved));
+}
 
     @GetMapping("/my-media")
     public ResponseEntity<List<MediaDTO>> getMyMedia(

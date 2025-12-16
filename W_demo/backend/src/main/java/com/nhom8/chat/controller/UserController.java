@@ -69,15 +69,12 @@ public class UserController {
         }
     }
 
-    // SỬA LẠI: Đổi tên endpoint search cũ
     @GetMapping("/search-by-username")
     public ResponseEntity<UserProfileDTO> searchUserByUsername(@RequestParam String username) {
         Optional<UserProfileDTO> user = userService.findUserByUsername(username);
         return user.map(ResponseEntity::ok)
                   .orElse(ResponseEntity.notFound().build());
     }
-
-    // GIỮ LẠI: Search mới với nhiều kết quả
     @GetMapping("/search")
     public ResponseEntity<List<UserProfileDTO>> searchUsers(
             @RequestParam String keyword,

@@ -7,9 +7,9 @@
 }
 
 .web-container {
-  -fx-background-color: rgba(40, 40, 40, 0.507);
+  -fx-background-color: rgba(250, 250, 250, 0.507);
   -fx-border-color: rgba(32, 16, 16, 0.952);
-  -fx-border-width: 7px;
+  -fx-border-width: 5px;
   -fx-border-radius: 15px;
   -fx-background-radius: 15px;
   -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.479), 15, 0.4, 0, 5);
@@ -19,7 +19,7 @@
 }
 /* Web header */
 .web-login-header {
-  -fx-text-fill: rgb(255, 255, 255);
+  -fx-text-fill: rgb(0, 0, 0);
   -fx-font-size: 25px;
   -fx-font-weight: bold;
   -fx-alignment: center;
@@ -85,8 +85,8 @@
 }
 
 .web-forgot-password {
-  -fx-text-fill: rgba(255, 255, 255, 0.9);
-  -fx-font-size: 11px; /* Rất nhỏ */
+  -fx-text-fill: rgba(0, 0, 0, 0.9);
+  -fx-font-size: 11px;
   -fx-alignment: center-right;
   -fx-cursor: hand;
   -fx-underline: false;
@@ -95,7 +95,7 @@
 
 .web-forgot-password:hover {
   -fx-underline: true;
-  -fx-text-fill: #ff6b6b;
+  -fx-text-fill: #ef3d3db7;
 }
 
 .web-login-button {
@@ -133,7 +133,7 @@
 
 /* Link text */
 .web-link-text {
-  -fx-text-fill: rgba(255, 255, 255, 0.9);
+  -fx-text-fill: rgba(0, 0, 0, 0.9);
   -fx-font-size: 12px;
 }
 

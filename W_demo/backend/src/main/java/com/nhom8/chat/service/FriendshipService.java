@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.nhom8.chat.dto.FriendOnlineDTO;
 import com.nhom8.chat.dto.FriendRequestDTO;
 import com.nhom8.chat.dto.FriendshipDTO;
 import com.nhom8.chat.entity.AppUser;
@@ -15,7 +16,9 @@ import com.nhom8.chat.entity.Friendship;
 import com.nhom8.chat.entity.enums.FriendshipStatus;
 import com.nhom8.chat.mapper.FriendshipMapper;
 import com.nhom8.chat.repository.FriendshipRepository;
+import com.nhom8.chat.repository.UserAvatarRepository;
 import com.nhom8.chat.repository.UserRepository;
+import com.nhom8.chat.repository.UserSessionRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,214 +30,238 @@ public class FriendshipService {
 
     private final FriendshipRepository friendshipRepository;
     private final UserRepository userRepository;
+    private final UserSessionRepository sessionRepo;
+    private final UserAvatarRepository avatarRepo;
 
-@Transactional
-public FriendshipDTO sendFriendRequest(Long currentUserId, FriendRequestDTO requestDTO) {
-    if (requestDTO == null || requestDTO.getTargetUserId() == null) {
-        throw new IllegalArgumentException("Target user ID cannot be null");
-    }
-    
-    Long targetUserId = requestDTO.getTargetUserId();
-    
-    // Kiểm tra không thể kết bạn với chính mình
-    if (currentUserId.equals(targetUserId)) {
-        throw new IllegalArgumentException("Cannot send friend request to yourself");
-    }
+    // =====================================================
+    // BUILD DTO ONLINE
+    // =====================================================
+    private FriendOnlineDTO buildFriendOnlineDTO(Long friendId) {
 
-    // ĐẢM BẢO user1Id LUÔN NHỎ HƠN user2Id
-    Long user1Id = Math.min(currentUserId, targetUserId);
-    Long user2Id = Math.max(currentUserId, targetUserId);
-    
-    // SỬA: Tìm user theo user1Id và user2Id đã sắp xếp
-    AppUser user1 = userRepository.findById(user1Id)
-            .orElseThrow(() -> new IllegalArgumentException("User1 not found"));
-    AppUser user2 = userRepository.findById(user2Id)
-            .orElseThrow(() -> new IllegalArgumentException("User2 not found"));
+        AppUser user = userRepository.findById(friendId).orElseThrow();
 
-    // SỬA: Kiểm tra friendship với user1Id và user2Id đã sắp xếp
-    friendshipRepository.findFriendshipBetweenUsers(user1Id, user2Id)
-            .ifPresent(existing -> {
-                throw new IllegalArgumentException("Friendship already exists with status: " + existing.getStatus());
-            });
+        String avatar = avatarRepo.findByUserIdAndCurrentTrue(friendId)
+                .map(a -> a.getMedia().getFileUrl())
+                .orElse(null);
 
-    // Xác định ai là người gửi request
-    AppUser actionUser = currentUserId.equals(user1Id) ? user1 : user2;
+        boolean online = sessionRepo.findOnlineUsers(List.of(friendId)).contains(friendId);
 
-    // SỬA: Tạo friendship mới với user1 và user2 đã sắp xếp
-    Friendship friendship = new Friendship();
-    friendship.setUser1(user1);  // user1 nhỏ hơn
-    friendship.setUser2(user2);  // user2 lớn hơn
-    friendship.setStatus(FriendshipStatus.PENDING);
-    friendship.setActionUser(actionUser);  // Người thực sự gửi request
-    friendship.setCreatedAt(Instant.now());
-    friendship.setUpdatedAt(Instant.now());
-
-    Friendship saved = friendshipRepository.save(friendship);
-    log.info("Friend request sent from user {} to user {}", currentUserId, targetUserId);
-    
-    return FriendshipMapper.toDTO(saved);
-}
-
-@Transactional
-public FriendshipDTO acceptFriendRequest(Long currentUserId, Long friendshipId) {
-    Friendship friendship = friendshipRepository.findById(friendshipId)
-            .orElseThrow(() -> new IllegalArgumentException("Friendship not found"));
-
-    // KIỂM TRA: currentUser KHÔNG PHẢI là người gửi request (actionUser)
-    if (friendship.getActionUser().getId().equals(currentUserId)) {
-        throw new IllegalArgumentException("You cannot accept your own friend request");
+        return new FriendOnlineDTO(
+                friendId,
+                user.getDisplayName(),
+                avatar,
+                online
+        );
     }
 
-    // Kiểm tra status phải là PENDING
-    if (friendship.getStatus() != FriendshipStatus.PENDING) {
-        throw new IllegalArgumentException("Friend request is not pending");
-    }
-
-    // CHỈ UPDATE status, KHÔNG thay đổi user1/user2/actionUser
-    friendship.setStatus(FriendshipStatus.ACCEPTED);
-    friendship.setUpdatedAt(Instant.now());
-
-    Friendship updated = friendshipRepository.save(friendship);
-    log.info("Friend request accepted: {}", friendshipId);
-    
-    return FriendshipMapper.toDTO(updated);
-}
-
-@Transactional
-public FriendshipDTO rejectFriendRequest(Long currentUserId, Long friendshipId) {
-    Friendship friendship = friendshipRepository.findById(friendshipId)
-            .orElseThrow(() -> new IllegalArgumentException("Friendship not found"));
-
-    // KIỂM TRA: currentUser KHÔNG PHẢI là người gửi request (actionUser)
-    if (friendship.getActionUser().getId().equals(currentUserId)) {
-        throw new IllegalArgumentException("You cannot reject your own friend request");
-    }
-
-    friendship.setStatus(FriendshipStatus.REJECTED);
-    // CHỈ UPDATE status, KHÔNG thay đổi user1/user2/actionUser
-    friendship.setUpdatedAt(Instant.now());
-
-    Friendship updated = friendshipRepository.save(friendship);
-    log.info("Friend request rejected: {}", friendshipId);
-    
-    return FriendshipMapper.toDTO(updated);
-}
-   @Transactional
-public FriendshipDTO blockUser(Long currentUserId, Long targetUserId) {
-    
-    // Kiểm tra không thể block chính mình
-    if (currentUserId.equals(targetUserId)) {
-        throw new IllegalArgumentException("Cannot block yourself");
-    }
-
-    // ĐẢM BẢO user1Id < user2Id
-    Long user1Id = Math.min(currentUserId, targetUserId);
-    Long user2Id = Math.max(currentUserId, targetUserId);
-    
-    AppUser user1 = userRepository.findById(user1Id)
-            .orElseThrow(() -> new IllegalArgumentException("User1 not found"));
-    AppUser user2 = userRepository.findById(user2Id)
-            .orElseThrow(() -> new IllegalArgumentException("User2 not found"));
-    
-    // Tìm friendship với đúng thứ tự đã sắp xếp
-    Optional<Friendship> existingFriendshipOpt = friendshipRepository.findFriendshipBetweenUsers(user1Id, user2Id);
-    
-    Friendship friendship;
-    
-    if (existingFriendshipOpt.isPresent()) {
-        // Nếu đã tồn tại, dùng friendship hiện tại
-        friendship = existingFriendshipOpt.get();
-        
-        // CHỈ UPDATE status và actionUser, KHÔNG thay đổi user1/user2
-        friendship.setStatus(FriendshipStatus.BLOCKED);
-        friendship.setActionUser(currentUserId.equals(user1Id) ? user1 : user2);
-        friendship.setUpdatedAt(Instant.now());
-        
-    } else {
-        // Tạo mới với đúng thứ tự user1 < user2
-        friendship = new Friendship();
-        friendship.setUser1(user1);  // user1 nhỏ hơn
-        friendship.setUser2(user2);  // user2 lớn hơn
-        friendship.setStatus(FriendshipStatus.BLOCKED);
-        friendship.setActionUser(currentUserId.equals(user1Id) ? user1 : user2);
-        friendship.setCreatedAt(Instant.now());
-        friendship.setUpdatedAt(Instant.now());
-    }
-
-    Friendship saved = friendshipRepository.save(friendship);
-    log.info("User {} blocked user {}", currentUserId, targetUserId);
-    
-    return FriendshipMapper.toDTO(saved);
-}
-
+    // =====================================================
+    // SEND FRIEND REQUEST
+    // =====================================================
     @Transactional
-    public void unblockUser(Long currentUserId, Long targetUserId) {
-        Friendship friendship = friendshipRepository.findFriendshipBetweenUsers(currentUserId, targetUserId)
-                .orElseThrow(() -> new IllegalArgumentException("No friendship found"));
+    public FriendshipDTO sendFriendRequest(Long currentUserId, FriendRequestDTO requestDTO) {
 
-        if (friendship.getStatus() != FriendshipStatus.BLOCKED) {
-            throw new IllegalArgumentException("User is not blocked");
-        }
+        Long targetUserId = requestDTO.getTargetUserId();
 
-        if (!friendship.getActionUser().getId().equals(currentUserId)) {
-            throw new IllegalArgumentException("Only the user who blocked can unblock");
-        }
+        if (currentUserId.equals(targetUserId))
+            throw new IllegalArgumentException("Cannot send friend request to yourself");
 
-        friendshipRepository.delete(friendship);
-        log.info("User {} unblocked user {}", currentUserId, targetUserId);
+        Long user1Id = Math.min(currentUserId, targetUserId);
+        Long user2Id = Math.max(currentUserId, targetUserId);
+
+        AppUser user1 = userRepository.findById(user1Id).orElseThrow();
+        AppUser user2 = userRepository.findById(user2Id).orElseThrow();
+
+        friendshipRepository.findFriendshipBetweenUsers(user1Id, user2Id)
+                .ifPresent(ex -> {
+                    throw new IllegalArgumentException("Friendship already exists");
+                });
+
+        AppUser actionUser = currentUserId.equals(user1Id) ? user1 : user2;
+
+        Friendship f = new Friendship();
+        f.setUser1(user1);
+        f.setUser2(user2);
+        f.setActionUser(actionUser);
+        f.setStatus(FriendshipStatus.PENDING);
+        f.setCreatedAt(Instant.now());
+        f.setUpdatedAt(Instant.now());
+
+        return FriendshipMapper.toDTO(friendshipRepository.save(f));
     }
 
+    // =====================================================
+    // ACCEPT REQUEST
+    // =====================================================
     @Transactional
-    public void removeFriend(Long currentUserId, Long friendshipId) {
+    public FriendshipDTO acceptFriendRequest(Long currentUserId, Long friendshipId) {
+
         Friendship friendship = friendshipRepository.findById(friendshipId)
                 .orElseThrow(() -> new IllegalArgumentException("Friendship not found"));
 
-        // Kiểm tra current user có liên quan đến friendship này không
-        if (!friendship.getUser1().getId().equals(currentUserId) && 
-            !friendship.getUser2().getId().equals(currentUserId)) {
-            throw new IllegalArgumentException("You are not part of this friendship");
+        if (friendship.getActionUser().getId().equals(currentUserId))
+            throw new IllegalArgumentException("Cannot accept your own request");
+
+        friendship.setStatus(FriendshipStatus.ACCEPTED);
+        friendship.setUpdatedAt(Instant.now());
+
+        return FriendshipMapper.toDTO(friendshipRepository.save(friendship));
+    }
+
+    // =====================================================
+    // REJECT REQUEST
+    // =====================================================
+    @Transactional
+    public FriendshipDTO rejectFriendRequest(Long currentUserId, Long friendshipId) {
+
+        Friendship friendship = friendshipRepository.findById(friendshipId)
+                .orElseThrow(() -> new IllegalArgumentException("Friendship not found"));
+
+        if (friendship.getActionUser().getId().equals(currentUserId))
+            throw new IllegalArgumentException("Cannot reject your own request");
+
+        friendship.setStatus(FriendshipStatus.REJECTED);
+        friendship.setUpdatedAt(Instant.now());
+
+        return FriendshipMapper.toDTO(friendshipRepository.save(friendship));
+    }
+
+    // =====================================================
+    // BLOCK USER
+    // =====================================================
+    @Transactional
+    public FriendshipDTO blockUser(Long currentUserId, Long targetUserId) {
+
+        if (currentUserId.equals(targetUserId))
+            throw new IllegalArgumentException("Cannot block yourself");
+
+        Long user1Id = Math.min(currentUserId, targetUserId);
+        Long user2Id = Math.max(currentUserId, targetUserId);
+
+        AppUser user1 = userRepository.findById(user1Id).orElseThrow();
+        AppUser user2 = userRepository.findById(user2Id).orElseThrow();
+
+        Optional<Friendship> ex = friendshipRepository.findFriendshipBetweenUsers(user1Id, user2Id);
+
+        Friendship f;
+
+        if (ex.isPresent()) {
+            f = ex.get();
+            f.setStatus(FriendshipStatus.BLOCKED);
+            f.setActionUser(currentUserId.equals(user1Id) ? user1 : user2);
+            f.setUpdatedAt(Instant.now());
+        } else {
+            f = new Friendship();
+            f.setUser1(user1);
+            f.setUser2(user2);
+            f.setActionUser(currentUserId.equals(user1Id) ? user1 : user2);
+            f.setStatus(FriendshipStatus.BLOCKED);
+            f.setCreatedAt(Instant.now());
+            f.setUpdatedAt(Instant.now());
         }
 
-        friendshipRepository.delete(friendship);
-        log.info("Friendship removed: {}", friendshipId);
+        return FriendshipMapper.toDTO(friendshipRepository.save(f));
     }
 
+    // =====================================================
+    // UNBLOCK USER
+    // =====================================================
+    @Transactional
+    public void unblockUser(Long currentUserId, Long targetUserId) {
+
+        Friendship f = friendshipRepository.findFriendshipBetweenUsers(currentUserId, targetUserId)
+                .orElseThrow(() -> new IllegalArgumentException("Not found"));
+
+        if (f.getStatus() != FriendshipStatus.BLOCKED)
+            throw new IllegalArgumentException("User is not blocked");
+
+        if (!f.getActionUser().getId().equals(currentUserId))
+            throw new IllegalArgumentException("Not allowed");
+
+        friendshipRepository.delete(f);
+    }
+
+    // =====================================================
+    // REMOVE FRIEND
+    // =====================================================
+    @Transactional
+    public void removeFriend(Long currentUserId, Long friendshipId) {
+
+        Friendship f = friendshipRepository.findById(friendshipId)
+                .orElseThrow(() -> new IllegalArgumentException("Not found"));
+
+        if (!f.getUser1().getId().equals(currentUserId)
+                && !f.getUser2().getId().equals(currentUserId))
+            throw new IllegalArgumentException("Not allowed");
+
+        friendshipRepository.delete(f);
+    }
+
+    // =====================================================
+    // FRIEND LIST (ONLINE + AVATAR)
+    // =====================================================
+    public List<FriendOnlineDTO> getFriends(Long currentUserId) {
+
+        List<Friendship> list =
+                friendshipRepository.findByUserIdAndStatus(currentUserId, FriendshipStatus.ACCEPTED);
+
+        List<Long> friendIds = list.stream()
+                .map(f -> f.getUser1().getId().equals(currentUserId)
+                        ? f.getUser2().getId()
+                        : f.getUser1().getId())
+                .toList();
+
+        List<Long> onlineUsers = sessionRepo.findOnlineUsers(friendIds);
+
+        return friendIds.stream()
+                .map(id -> {
+                    AppUser u = userRepository.findById(id).orElseThrow();
+                    String avatar = avatarRepo.findByUserIdAndCurrentTrue(id)
+                            .map(a -> a.getMedia().getFileUrl())
+                            .orElse(null);
+                    boolean online = onlineUsers.contains(id);
+                    return new FriendOnlineDTO(id, u.getDisplayName(), avatar, online);
+                })
+                .toList();
+    }
+
+    // =====================================================
+    // PENDING & BLOCKED REQUESTS
+    // =====================================================
     public List<FriendshipDTO> getFriendRequests(Long currentUserId) {
-        List<Friendship> pendingRequests = friendshipRepository.findByUserIdAndStatus(
-                currentUserId, FriendshipStatus.PENDING);
-        
-        return pendingRequests.stream()
-                .map(FriendshipMapper::toDTO)
-                .collect(Collectors.toList());
-    }
-
-    public List<FriendshipDTO> getFriends(Long currentUserId) {
-        List<Friendship> friendships = friendshipRepository.findByUserIdAndStatus(
-                currentUserId, FriendshipStatus.ACCEPTED);
-        
-        return friendships.stream()
+        return friendshipRepository.findByUserIdAndStatus(currentUserId, FriendshipStatus.PENDING)
+                .stream()
                 .map(FriendshipMapper::toDTO)
                 .collect(Collectors.toList());
     }
 
     public List<FriendshipDTO> getBlockedUsers(Long currentUserId) {
-        List<Friendship> blocked = friendshipRepository.findByUserIdAndStatus(
-                currentUserId, FriendshipStatus.BLOCKED);
-        
-        return blocked.stream()
+        return friendshipRepository.findByUserIdAndStatus(currentUserId, FriendshipStatus.BLOCKED)
+                .stream()
                 .map(FriendshipMapper::toDTO)
                 .collect(Collectors.toList());
     }
 
+    // =====================================================
+    // GET FRIENDSHIP RECORD BETWEEN 2 USERS
+    // =====================================================
     public FriendshipDTO getFriendshipBetweenUsers(Long user1Id, Long user2Id) {
-        return friendshipRepository.findFriendshipBetweenUsers(user1Id, user2Id)
+        Long a = Math.min(user1Id, user2Id);
+        Long b = Math.max(user1Id, user2Id);
+
+        return friendshipRepository.findFriendshipBetweenUsers(a, b)
                 .map(FriendshipMapper::toDTO)
                 .orElse(null);
     }
 
-public boolean areFriends(Long user1Id, Long user2Id) {
-    return friendshipRepository.findFriendshipBetweenUsers(user1Id, user2Id)
-            .map(friendship -> friendship.getStatus().equals(FriendshipStatus.ACCEPTED))
-            .orElse(false);
-}
+    // =====================================================
+    // CHECK IF TWO USERS ARE FRIENDS
+    // =====================================================
+    public boolean areFriends(Long user1Id, Long user2Id) {
+        Long a = Math.min(user1Id, user2Id);
+        Long b = Math.max(user1Id, user2Id);
+
+        return friendshipRepository.findFriendshipBetweenUsers(a, b)
+                .map(f -> f.getStatus() == FriendshipStatus.ACCEPTED)
+                .orElse(false);
+    }
 }

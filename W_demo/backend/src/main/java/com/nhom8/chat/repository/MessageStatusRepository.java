@@ -29,13 +29,11 @@ public interface MessageStatusRepository extends JpaRepository<MessageStatus, Me
     List<MessageStatus> findUnreadByConversationAndUser(@Param("conversationId") Long conversationId, 
                                                        @Param("userId") Long userId);
     
-    // THÊM: @Modifying và @Transactional
     @Modifying
     @Transactional
     @Query("DELETE FROM MessageStatus ms WHERE ms.message.conversation.id = :conversationId")
     int deleteByConversationId(@Param("conversationId") Long conversationId);
     
-    // THÊM: Method để kiểm tra
     @Query("SELECT COUNT(ms) FROM MessageStatus ms WHERE ms.message.conversation.id = :conversationId")
     long countByConversationId(@Param("conversationId") Long conversationId);
 }

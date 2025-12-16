@@ -3,6 +3,8 @@ package com.nhom8.chat.realtime;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 
 import com.nhom8.chat.entity.ChatMessage;
@@ -33,6 +35,9 @@ public class ChatRealtimeBridge implements MessageListener {
     private ChatServer chatServer;
     private ChatService chatService;
     private final Map<String, MessageListener> httpSessions = new ConcurrentHashMap<>();
+    @Autowired
+private SimpMessagingTemplate messagingTemplate;
+
 
     @PostConstruct
     public void start() {
@@ -80,11 +85,27 @@ public class ChatRealtimeBridge implements MessageListener {
                     content
             );
 
+            envelope.addMetadata("senderId", chatMessage.getSender().getId());
+        envelope.addMetadata("senderName", chatMessage.getSender().getDisplayName());
+        envelope.addMetadata("conversationId", chatMessage.getConversation().getId());
             envelope.addMetadata("messageId", chatMessage.getId());
             envelope.addMetadata("clientCid", clientCid);
             envelope.addMetadata("sentAt", chatMessage.getSentAt().toString());
 
-            chatService.sendMessage(envelope);
+            Long convId = chatMessage.getConversation().getId();
+            messagingTemplate.convertAndSend(
+                "/topic/conversations/" + convId,
+                Map.of(
+                    "id", chatMessage.getId(),
+                    "conversationId", convId,
+                    "senderId", chatMessage.getSender().getId(),
+                    "senderName", chatMessage.getSender().getDisplayName(),
+                    "content", chatMessage.getContent(),
+                    "sentAt", chatMessage.getSentAt(),
+                    "clientCid", clientCid
+                    )
+                    );
+
 
             log.debug("Broadcast message: {} from {} to room {}",
                     content, sender, roomId);

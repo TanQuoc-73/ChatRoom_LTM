@@ -1,9 +1,10 @@
 package com.nhom8.chat.dto;
 
-import com.nhom8.chat.entity.enums.MediaType;
-import lombok.Data;
-
 import java.time.Instant;
+
+import com.nhom8.chat.entity.enums.MediaType;
+
+import lombok.Data;
 
 @Data
 public class MediaDTO {
@@ -24,4 +25,7 @@ public class MediaDTO {
 
     private boolean temp;
     private Instant uploadedAt;
+
+    private String caption;
+    private String visibility;
 }

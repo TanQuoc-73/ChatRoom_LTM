@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import com.nhom8.chat.entity.Friendship;
 import com.nhom8.chat.entity.enums.FriendshipStatus;
 
+
 public interface FriendshipRepository extends JpaRepository<Friendship, Long> {
     
     @Query("SELECT f FROM Friendship f WHERE " +

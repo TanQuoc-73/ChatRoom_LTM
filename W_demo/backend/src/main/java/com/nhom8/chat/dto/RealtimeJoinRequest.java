@@ -7,6 +7,6 @@ public class RealtimeJoinRequest {
     @NotBlank
     private String conversationId;
     
-    private String sessionToken; // Optional for authentication
+    private String sessionToken; 
     
 }

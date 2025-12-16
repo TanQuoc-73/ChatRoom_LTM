@@ -49,35 +49,46 @@ public class AuthService {
         return appUserRepository.save(user);
     }
 
-    public UserSession login(String username, String plainPassword, DeviceType deviceType, 
-                           String clientInfo, String ipAddress) {
-        
-        AppUser user = appUserRepository.findByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException("Sai tên hoặc pass rồi"));
+   public UserSession login(String username, String plainPassword, DeviceType deviceType, 
+                         String clientInfo, String ipAddress) {
 
-        if (!passwordEncoder.matches(plainPassword, user.getPasswordHash())) {
-            throw new IllegalArgumentException("Sai tên hoặc pass rồi");
-        }
+    AppUser user = appUserRepository.findByUsername(username)
+            .orElseThrow(() -> new IllegalArgumentException("Sai tên hoặc pass rồi"));
 
-        if (!user.getActive()) {
-            throw new IllegalArgumentException("Tài khoản bị vô hiệu hóa -1");
-        }
-
-        user.setLastActive(Instant.now());
-        appUserRepository.save(user);
-
-        UserSession session = new UserSession();
-        session.setUser(user);
-        session.setSessionToken(generateSessionToken());
-        session.setDeviceType(deviceType);
-        session.setClientInfo(clientInfo);
-        session.setIpAddress(ipAddress);
-        session.setOnline(true);
-        session.setConnectedAt(Instant.now());
-        session.setLastHeartbeat(Instant.now());
-
-        return userSessionRepository.save(session);
+    if (!passwordEncoder.matches(plainPassword, user.getPasswordHash())) {
+        throw new IllegalArgumentException("Sai tên hoặc pass rồi");
     }
+
+    if (!user.getActive()) {
+        throw new IllegalArgumentException("Tài khoản bị vô hiệu hóa -1");
+    }
+
+    // 🔥 FIX QUAN TRỌNG NHẤT
+    // Tắt tất cả session cũ của user này
+    userSessionRepository.findByUserIdAndOnlineTrue(user.getId())
+            .forEach(s -> {
+                s.setOnline(false);
+                userSessionRepository.save(s);
+            });
+
+    // cập nhật last active
+    user.setLastActive(Instant.now());
+    appUserRepository.save(user);
+
+    // tạo session mới
+    UserSession session = new UserSession();
+    session.setUser(user);
+    session.setSessionToken(generateSessionToken());
+    session.setDeviceType(deviceType);
+    session.setClientInfo(clientInfo);
+    session.setIpAddress(ipAddress);
+    session.setOnline(true);
+    session.setConnectedAt(Instant.now());
+    session.setLastHeartbeat(Instant.now());
+
+    return userSessionRepository.save(session);
+}
+
 
     public void logout(String sessionToken) {
         UserSession session = userSessionRepository.findBySessionToken(sessionToken)

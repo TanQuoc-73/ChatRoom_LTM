@@ -8,5 +8,5 @@ public class RealtimeTypingRequest {
     @NotBlank
     private String conversationId;
     
-    private boolean typing = true; // true = typing, false = stopped
+    private boolean typing = true; 
 }
