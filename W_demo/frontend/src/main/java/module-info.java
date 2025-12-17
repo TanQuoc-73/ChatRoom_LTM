@@ -7,9 +7,12 @@ module chat.client.fx {
     requires org.slf4j;
     requires java.prefs;
     requires Java.WebSocket;
+
     opens chat.client.fx to javafx.fxml;
-    opens chat.client.fx.service to javafx.fxml,Java.WebSocket;
+    opens chat.client.fx.service to javafx.fxml, Java.WebSocket;
+    opens chat.client.fx.model to com.fasterxml.jackson.databind;
 
     exports chat.client.fx;
     exports chat.client.fx.service;
+    exports chat.client.fx.model;
 }

@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ProgressIndicator?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.TilePane?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane fx:id="root" 
+            prefHeight="700.0" 
+            prefWidth="1000.0" 
+            xmlns="http://javafx.com/javafx" 
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="chat.client.fx.GalleryController"
+            styleClass="gallery-root">
+
+    <!-- TOP TOOLBAR -->
+    <top>
+        <VBox styleClass="toolbar-container">
+            <HBox styleClass="toolbar" alignment="CENTER_LEFT" spacing="15">
+                <padding>
+                    <Insets top="15" right="20" bottom="15" left="20"/>
+                </padding>
+
+                <!-- Title -->
+                <Label text="🖼 Bộ Sưu Tập Ảnh" styleClass="gallery-title" HBox.hgrow="ALWAYS"/>
+
+                <!-- Filter Buttons -->
+                <HBox spacing="8" styleClass="filter-group">
+                    <Button fx:id="btnFilterAll" 
+                            text="Tất cả" 
+                            onAction="#onFilterAll" 
+                            styleClass="filter-btn, filter-btn-active"/>
+                    <Button fx:id="btnFilterPhotos" 
+                            text="📷 Ảnh" 
+                            onAction="#onFilterPhotos" 
+                            styleClass="filter-btn"/>
+                    <Button fx:id="btnFilterVideos" 
+                            text="🎥 Video" 
+                            onAction="#onFilterVideos" 
+                            styleClass="filter-btn"/>
+                </HBox>
+
+                <!-- Upload/Refresh Buttons -->
+                <HBox spacing="10">
+                    <Button fx:id="btnRefresh" 
+                            text="🔄" 
+                            onAction="#onRefresh" 
+                            styleClass="action-btn"
+                            minWidth="40"/>
+                    <Button fx:id="btnUpload" 
+                            text="⬆ Upload" 
+                            onAction="#onUpload" 
+                            styleClass="action-btn, upload-btn"/>
+                </HBox>
+            </HBox>
+
+            <!-- Status Bar -->
+            <HBox fx:id="statusBar" 
+                  styleClass="status-bar" 
+                  alignment="CENTER_LEFT" 
+                  spacing="10"
+                  managed="true"
+                  visible="true">
+                <padding>
+                    <Insets top="8" right="20" bottom="8" left="20"/>
+                </padding>
+                <Label fx:id="statusLabel" text="Đang tải..." styleClass="status-text"/>
+                <ProgressIndicator fx:id="progressIndicator" 
+                                 prefWidth="20" 
+                                 prefHeight="20"
+                                 visible="false"/>
+            </HBox>
+        </VBox>
+    </top>
+
+    <!-- MAIN CONTENT AREA -->
+    <center>
+        <ScrollPane fx:id="scrollPane" 
+                    fitToWidth="true" 
+                    styleClass="gallery-scroll">
+            <VBox styleClass="gallery-container">
+                <padding>
+                    <Insets top="20" right="20" bottom="20" left="20"/>
+                </padding>
+                
+                <!-- Media Grid -->
+                <TilePane fx:id="mediaGrid" 
+                         hgap="15" 
+                         vgap="15" 
+                         prefColumns="4"
+                         styleClass="media-grid"/>
+
+                <!-- Empty State -->
+                <VBox fx:id="emptyState" 
+                      alignment="CENTER" 
+                      spacing="15" 
+                      styleClass="empty-state"
+                      visible="false"
+                      managed="false">
+                    <padding>
+                        <Insets top="100" bottom="100"/>
+                    </padding>
+                    <Label text="📭" styleClass="empty-icon"/>
+                    <Label text="Chưa có ảnh nào" styleClass="empty-text"/>
+                    <Label text="Click 'Upload' để thêm ảnh đầu tiên" styleClass="empty-subtext"/>
+                </VBox>
+            </VBox>
+        </ScrollPane>
+    </center>
+
+</BorderPane>
