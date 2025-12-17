@@ -53,7 +53,7 @@ import java.util.stream.Collectors;
 public class ChatMainController implements Initializable {
 
     @FXML
-    private Button btnHome, btnPicture, btnPlus, btnBell, btnUser, themeToggle;
+    private Button btnHome, btnPicture, btnPlus, btnBell, btnUser, themeToggle, btnLogout;
     @FXML
     private Label themeIcon;
     @FXML
@@ -573,6 +573,57 @@ public class ChatMainController implements Initializable {
     @FXML
     private void onProfile() {
         showInfo("Profile", "Màn profile chưa port sang JavaFX.");
+    }
+
+    @FXML
+    private void onLogout() {
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+        confirm.setTitle("Đăng xuất");
+        confirm.setHeaderText(null);
+        confirm.setContentText("Bạn có chắc muốn đăng xuất?");
+
+        confirm.showAndWait().ifPresent(response -> {
+            if (response == ButtonType.OK) {
+                performLogout();
+            }
+        });
+    }
+
+    private void performLogout() {
+        try {
+            // Clear session
+            prefs.remove("zmnt_session_token");
+            prefs.remove("zmnt_user_id");
+            prefs.remove("zmnt_username");
+            prefs.remove("zmnt_login_time");
+
+            SessionStore.clear();
+
+            // Load login screen
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/login-view.fxml"));
+            Parent loginRoot = loader.load();
+
+            LoginController loginController = loader.getController();
+
+            Stage loginStage = new Stage();
+            loginStage.setTitle("ZMNT Chat - Đăng nhập");
+
+            Scene scene = new Scene(loginRoot, 1000, 600);
+            scene.getStylesheets().add(getClass().getResource("/styles/login.css").toExternalForm());
+
+            loginStage.setScene(scene);
+            loginController.setPrimaryStage(loginStage);
+
+            // Close current window
+            Stage currentStage = (Stage) btnLogout.getScene().getWindow();
+            currentStage.close();
+
+            loginStage.show();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            showError("Lỗi", "Không thể đăng xuất: " + e.getMessage());
+        }
     }
 
     @FXML
