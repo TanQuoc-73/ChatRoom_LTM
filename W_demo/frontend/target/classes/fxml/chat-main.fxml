@@ -48,6 +48,7 @@
                                         <Label fx:id="themeIcon" text="🌙" />
                                     </graphic>
                                 </Button>
+                                <Button fx:id="btnLogout" onAction="#onLogout" styleClass="nav-btn" text="🚪" />
                             </children>
                         </HBox>
 
