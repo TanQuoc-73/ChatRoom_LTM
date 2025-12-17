@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>ZMNT - Chatroom UI</title>
+    <link
+      id="themeStylesheet"
+      rel="stylesheet"
+      href="/api/public/css/style.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn-uicons.flaticon.com/uicons-solid-rounded/css/uicons-solid-rounded.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn-uicons.flaticon.com/uicons-regular-rounded/css/uicons-regular-rounded.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn-uicons.flaticon.com/uicons-bold-rounded/css/uicons-bold-rounded.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn-uicons.flaticon.com/3.0.0/uicons-bold-straight/css/uicons-bold-straight.css"
+    />
+  </head>
+  <body>
+    <div id="friendRequestDropdown"></div>
+
+    <div id="wrap">
+      <header class="topbar">
+        <div class="top-inner">
+          <div class="brand">
+            <div class="brand-mark">Z</div>
+            <div class="brand-text">TMNT</div>
+          </div>
+
+          <nav class="nav-icons">
+            <button class="nav-btn"><i class="fi fi-sr-home"></i></button>
+            <button class="nav-btn"><i class="fi fi-sr-picture"></i></button>
+            <button class="nav-btn"><i class="fi fi-sr-plus"></i></button>
+            <button class="nav-btn"><i class="fi fi-sr-bell"></i></button>
+            <button class="nav-btn"><i class="fi fi-sr-user"></i></button>
+          </nav>
+          <div class="right-controls">
+            <button
+              id="themeToggle"
+              class="nav-btn"
+              aria-label="Toggle theme"
+              title="Chuyển giao diện"
+            >
+              <i id="themeIcon" class="fi fi-sr-moon"></i>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <main class="layout">
+        <aside class="col left-col">
+          <div class="panel search-panel">
+            <input id="search" placeholder=" Search" />
+          </div>
+          <div class="panel search-result-panel">
+            <ul id="searchResults" class="list-unstyled"></ul>
+          </div>
+
+          <div class="panel left-actions">
+            <button class="btn primary" id="btnCreate">
+              <i class="fi fi-sr-plus"></i> Tạo room chat
+            </button>
+            <button class="btn" id="btnCollection">
+              <i class="fi fi-sr-picture"></i> Bộ sưu tập
+            </button>
+            <button class="btn" id="btnSettings">
+              <i class="fi fi-sr-settings"></i> Cài đặt
+            </button>
+          </div>
+
+          <div class="panel support">
+            <button class="btn donate">
+              <i class="fi fi-sr-money-bill-wave"></i> Ủng hộ team gói mì tôm
+            </button>
+          </div>
+        </aside>
+
+        <section class="col center-col">
+          <div class="profile-small panel">
+            <div class="profile-avatar"></div>
+            <div class="profile-name" id="postAuthorName">VIPMember</div>
+          </div>
+
+          <div class="panel main-post">
+            <button class="post-nav-btn post-prev" id="postPrevBtn">
+              &#10094;
+            </button>
+            <button class="post-nav-btn post-next" id="postNextBtn">
+              &#10095;
+            </button>
+
+            <div class="main-post-frame">
+              <img id="mainImage" src="" alt="main" />
+            </div>
+            <div class="post-caption">caption hiển thị ở đây</div>
+          </div>
+        </section>
+        <aside class="col right-col">
+          <div class="panel online-panel">
+            <h3 class="panel-title">Các Cốt</h3>
+            <ul id="friends" class="list-unstyled placeholder-list">
+              <li class="empty">
+                Chưa có bạn bè. Khi có bạn bè sẽ hiện ở đây.
+              </li>
+            </ul>
+          </div>
+
+          <div class="panel groups-panel">
+            <h3 class="panel-title">Gò rúp chat</h3>
+            <ul id="groups" class="list-unstyled placeholder-list">
+              <li class="empty">
+                Chưa có nhóm. Tạo nhóm hoặc được mời sẽ hiển thị ở đây.
+              </li>
+            </ul>
+          </div>
+        </aside>
+      </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script> 
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script> 
+    <script src="/api/public/js/app.js"></script>
+  </body>
+</html>

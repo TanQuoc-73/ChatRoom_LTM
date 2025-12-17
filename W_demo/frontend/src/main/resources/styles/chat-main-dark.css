@@ -1,0 +1,472 @@
+BorderPane {
+  -fx-background-color: linear-gradient(
+    to bottom right,
+    #0f0f0f,
+    #1a1a1a
+  ) !important;
+}
+
+.root {
+  -fx-background-color: #0f0f0f;
+  -fx-font-family: "Segoe UI", "Roboto", "Arial", sans-serif;
+}
+
+/* Main layout HBox */
+.layout {
+  -fx-background-color: transparent !important;
+  -fx-padding: 22;
+  -fx-spacing: 22;
+}
+
+/* Columns */
+.col {
+  -fx-min-height: 200;
+  -fx-background-color: transparent !important;
+}
+
+/* ================== TOPBAR ================== */
+
+.topbar {
+  -fx-pref-height: 64px;
+  -fx-padding: 10 22 10 22;
+  -fx-alignment: CENTER_LEFT;
+  -fx-background-color: transparent !important;
+}
+
+.top-inner {
+  -fx-padding: 6 16;
+  -fx-alignment: CENTER;
+  -fx-spacing: 12;
+  -fx-background-radius: 18;
+  -fx-border-radius: 18;
+  -fx-background-color: rgba(30, 30, 30, 0.9) !important;
+  -fx-border-color: rgba(100, 100, 100, 0.4);
+  -fx-border-width: 1;
+  -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.15), 14, 0.15, 0, 4);
+}
+
+/* BRAND */
+.brand {
+  -fx-alignment: CENTER_LEFT;
+  -fx-spacing: 10;
+  -fx-min-width: 160;
+}
+
+.brand-mark {
+  -fx-pref-width: 56;
+  -fx-pref-height: 56;
+  -fx-alignment: CENTER;
+  -fx-font-weight: 800;
+  -fx-font-size: 22px;
+  -fx-background-radius: 16;
+  -fx-border-radius: 16;
+  -fx-background-color: #6366f1;
+  -fx-text-fill: #f9fafb;
+  -fx-border-color: transparent;
+  -fx-effect: dropshadow(gaussian, rgba(99, 102, 241, 0.35), 16, 0.3, 0, 6);
+}
+
+.brand-text {
+  -fx-font-weight: 700;
+  -fx-font-size: 18px;
+  -fx-text-fill: #f0f0f0;
+}
+
+/* NAV ICONS */
+.nav-icons {
+  -fx-alignment: CENTER;
+  -fx-spacing: 40;
+}
+
+.nav-btn {
+  -fx-pref-width: 52;
+  -fx-pref-height: 44;
+  -fx-alignment: CENTER;
+  -fx-background-radius: 14;
+  -fx-border-radius: 14;
+  -fx-background-color: rgba(40, 40, 40, 0.9);
+  -fx-border-color: transparent;
+  -fx-font-size: 18px;
+  -fx-text-fill: #f0f0f0;
+  -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.18), 12, 0.2, 0, 4);
+}
+
+.nav-btn:hover {
+  -fx-translate-y: -1.5;
+  -fx-background-color: linear-gradient(to bottom, #2a2a2a, #333333);
+  -fx-effect: dropshadow(gaussian, rgba(99, 102, 241, 0.35), 18, 0.25, 0, 6);
+}
+
+.right-controls {
+  -fx-alignment: CENTER_RIGHT;
+}
+
+/* ================== PANEL STYLES (CARD CHUNG) ================== */
+.panel {
+  -fx-background-color: rgba(40, 40, 40, 0.93) !important;
+  -fx-background-radius: 26;
+  -fx-border-radius: 26;
+  -fx-padding: 16;
+  -fx-border-color: rgba(100, 100, 100, 0.4);
+  -fx-border-width: 1;
+  -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.12), 12, 0.16, 0, 4);
+}
+
+/* ================== LEFT SIDE ================== */
+.search-panel {
+  -fx-background-color: rgba(35, 35, 35, 0.9) !important;
+}
+
+.search-field {
+  -fx-background-color: #2a2a2a !important;
+  -fx-background-radius: 24;
+  -fx-border-radius: 24;
+  -fx-border-color: #444;
+  -fx-border-width: 1.5;
+  -fx-padding: 10 16;
+  -fx-text-fill: #f0f0f0 !important;
+  -fx-prompt-text-fill: #888;
+  -fx-font-size: 13px;
+}
+
+.search-field:focused {
+  -fx-border-color: #6366f1;
+  -fx-effect: dropshadow(gaussian, rgba(99, 102, 241, 0.35), 16, 0.3, 0, 4);
+}
+
+/* Search results */
+.search-result-panel {
+  -fx-background-color: rgba(40, 40, 40, 0.96) !important;
+}
+
+.search-results-list {
+  -fx-background-color: transparent;
+  -fx-border-color: transparent;
+}
+
+.search-results-list .list-cell {
+  -fx-padding: 8 10;
+  -fx-background-radius: 18;
+  -fx-border-radius: 18;
+  -fx-background-insets: 4;
+  -fx-background-color: transparent;
+}
+
+.search-results-list .list-cell:filled {
+  -fx-background-color: #2a2a2a;
+  -fx-border-color: #444;
+  -fx-border-width: 1;
+}
+
+.search-results-list .list-cell:filled:hover {
+  -fx-background-color: #333333;
+}
+
+/* Left actions container */
+.left-actions {
+  -fx-background-color: rgba(40, 40, 40, 0.96) !important;
+  -fx-background-radius: 26;
+  -fx-border-radius: 26;
+}
+
+/* Left action buttons */
+.left-action-btn {
+  -fx-padding: 12;
+  -fx-background-radius: 14;
+  -fx-border-radius: 14;
+  -fx-background-color: transparent;
+  -fx-border-color: rgba(100, 100, 100, 0.4);
+  -fx-border-width: 1;
+  -fx-text-fill: #f0f0f0 !important;
+  -fx-font-size: 14px;
+  -fx-alignment: CENTER_LEFT;
+}
+
+.left-action-btn:hover {
+  -fx-background-color: linear-gradient(to right, #333333, #3a3a3a);
+  -fx-border-color: #6366f1;
+  -fx-effect: dropshadow(gaussian, rgba(99, 102, 241, 0.35), 16, 0.3, 0, 4);
+}
+
+.left-action-primary {
+  -fx-border-color: #6366f1;
+  -fx-font-weight: 700;
+}
+
+/* Donate card */
+.donate-panel {
+  -fx-background-color: rgba(40, 40, 40, 0.96) !important;
+}
+
+.btn-donate {
+  -fx-padding: 10;
+  -fx-background-radius: 14;
+  -fx-border-radius: 14;
+  -fx-border-color: #555;
+  -fx-border-style: dashed;
+  -fx-border-width: 2;
+  -fx-background-color: transparent;
+  -fx-text-fill: #f0f0f0 !important;
+  -fx-font-size: 14px;
+}
+
+/* ================== PROFILE & MAIN POST ================== */
+.profile-small {
+  -fx-background-color: rgba(40, 40, 40, 0.96) !important;
+  -fx-background-radius: 28;
+  -fx-border-radius: 28;
+  -fx-border-color: rgba(100, 100, 100, 0.4);
+  -fx-border-width: 1;
+  -fx-alignment: CENTER_LEFT;
+  -fx-spacing: 10;
+  -fx-padding: 8 10;
+}
+
+.profile-avatar {
+  -fx-background-radius: 18;
+  -fx-border-radius: 18;
+  -fx-background-color: #444;
+  -fx-border-color: rgba(100, 100, 100, 0.6);
+  -fx-border-width: 1.5;
+}
+
+.profile-name {
+  -fx-font-weight: 600;
+  -fx-font-size: 14px;
+  -fx-padding: 6 14;
+  -fx-background-radius: 999;
+  -fx-border-radius: 999;
+  -fx-background-color: #333333;
+  -fx-border-color: #6366f1;
+  -fx-text-fill: #f0f0f0 !important;
+}
+
+/* MAIN POST CARD */
+.main-post {
+  -fx-padding: 20;
+  -fx-spacing: 10;
+  -fx-background-color: transparent !important;
+}
+
+/* Header tên người đăng trong card */
+.post-header {
+  -fx-padding: 0 4 10 4;
+  -fx-alignment: CENTER_LEFT;
+  -fx-spacing: 10;
+}
+
+.post-author-avatar {
+  -fx-background-radius: 999;
+  -fx-border-radius: 999;
+  -fx-background-color: #444;
+  -fx-border-color: rgba(100, 100, 100, 0.7);
+  -fx-border-width: 1.5;
+}
+
+.post-author-name {
+  -fx-font-weight: 600;
+  -fx-font-size: 14px;
+  -fx-text-fill: #f0f0f0 !important;
+}
+
+/* khung ảnh chính */
+.main-post-frame {
+  -fx-padding: 16;
+  -fx-background-radius: 34;
+  -fx-border-radius: 34;
+  -fx-border-color: #444;
+  -fx-border-width: 2;
+  -fx-background-color: linear-gradient(to bottom, #1a1a1a, #222222) !important;
+  -fx-alignment: CENTER;
+}
+
+.main-image {
+  -fx-background-radius: 28;
+  -fx-border-radius: 28;
+  -fx-background-color: #444;
+}
+
+/* Caption */
+.post-caption {
+  -fx-padding: 12 4 0 4;
+  -fx-font-size: 15px;
+  -fx-text-fill: #f0f0f0 !important;
+}
+
+/* Prev / Next buttons */
+.post-nav-btn {
+  -fx-pref-width: 32;
+  -fx-pref-height: 32;
+  -fx-background-radius: 16;
+  -fx-border-radius: 16;
+  -fx-background-color: rgba(99, 102, 241, 0.75);
+  -fx-border-color: transparent;
+  -fx-text-fill: #f9fafb;
+  -fx-font-size: 16px;
+}
+
+.post-nav-btn:hover {
+  -fx-background-color: rgba(99, 102, 241, 0.9);
+}
+
+/* ================== RIGHT SIDE (FRIENDS + GROUPS) ================== */
+.right-panel {
+  -fx-background-color: rgba(40, 40, 40, 0.96) !important;
+}
+
+.panel-title {
+  -fx-padding: 0 0 10 0 !important;
+  -fx-font-size: 16px !important;
+  -fx-font-weight: 700 !important ;
+  -fx-text-fill: #f0f0f0 !important;
+}
+
+/* ListView container */
+.placeholder-list {
+  -fx-background-color: transparent !important;
+  -fx-border-color: transparent !important ;
+}
+
+/* Card-style cell cho friends & groups */
+.friends-list .list-cell,
+.groups-list .list-cell {
+  -fx-padding: 8 10 !important;
+  -fx-background-radius: 18 !important;
+  -fx-border-radius: 18 !important;
+  -fx-background-insets: 4 !important;
+  -fx-background-color: transparent !important;
+}
+
+.friends-list .list-cell:filled,
+.groups-list .list-cell:filled {
+  -fx-background-color: #2a2a2a !important;
+  -fx-border-color: #444 !important;
+  -fx-border-width: 1 !important;
+}
+
+.friends-list .list-cell:filled:hover,
+.groups-list .list-cell:filled:hover {
+  -fx-background-color: #333333 !important;
+}
+
+/* Khi chưa có item: dashed placeholder */
+.list-view .placeholder {
+  -fx-padding: 10 !important;
+  -fx-background-color: transparent !important;
+  -fx-border-color: rgba(100, 100, 100, 0.5) !important;
+  -fx-border-radius: 12 !important;
+  -fx-background-radius: 12 !important;
+  -fx-border-style: segments(8, 4) !important;
+  -fx-text-fill: #888 !important;
+}
+
+/* ================== GLOBAL OVERRIDES ================== */
+
+/* Đảm bảo tất cả text đều màu trắng */
+Label {
+  -fx-text-fill: #f0f0f0 !important;
+}
+
+/* Đảm bảo tất cả button đều có style dark */
+Button {
+  -fx-text-fill: #f0f0f0 !important;
+}
+
+/* Đảm bảo các VBox/HBox không có background trắng */
+VBox,
+HBox,
+StackPane {
+  -fx-background-color: transparent !important;
+}
+
+/* Override cho các container chính */
+.left-col,
+.center-col,
+.right-col {
+  -fx-background-color: transparent !important;
+}
+
+/* ================== CUSTOM CELL STYLES ================== */
+
+/* bạn bè */
+.friend-avatar {
+  -fx-background-radius: 18;
+  -fx-border-radius: 18;
+  -fx-background-color: #444;
+}
+.friend-name {
+  -fx-font-weight: 600;
+  -fx-text-fill: #f0f0f0 !important;
+}
+.friend-status {
+  -fx-font-size: 11px;
+  -fx-text-fill: #aaa !important;
+}
+.friend-action-btn {
+  -fx-padding: 3 6;
+  -fx-background-radius: 999;
+  -fx-border-radius: 999;
+  -fx-border-color: transparent;
+  -fx-background-color: #333333;
+  -fx-text-fill: #f0f0f0 !important;
+  -fx-font-size: 11px;
+}
+
+/* nhóm */
+.group-avatar {
+  -fx-background-radius: 20;
+  -fx-border-radius: 20;
+  -fx-background-color: #444;
+}
+.group-name {
+  -fx-font-weight: 600;
+  -fx-text-fill: #f0f0f0 !important;
+}
+.group-details {
+  -fx-font-size: 11px;
+  -fx-text-fill: #aaa !important;
+}
+
+/* search result items */
+.search-avatar {
+  -fx-background-radius: 18;
+  -fx-border-radius: 18;
+  -fx-background-color: #444;
+}
+.search-name {
+  -fx-font-weight: 600;
+  -fx-text-fill: #f0f0f0 !important;
+}
+.search-username {
+  -fx-font-size: 11px;
+  -fx-text-fill: #aaa !important;
+}
+.btn-add-friend {
+  -fx-padding: 4 10;
+  -fx-background-radius: 999;
+  -fx-border-radius: 999;
+  -fx-background-color: #6366f1;
+  -fx-text-fill: #ffffff !important;
+  -fx-font-size: 11px;
+  -fx-border-color: transparent;
+}
+.btn-add-friend:disabled {
+  -fx-opacity: 0.6;
+}
+
+/* ================== SCROLLBAR ================== */
+.scroll-bar:vertical,
+.scroll-bar:horizontal {
+  -fx-background-color: transparent;
+}
+
+.scroll-bar:vertical .thumb,
+.scroll-bar:horizontal .thumb {
+  -fx-background-color: rgba(100, 100, 100, 0.3);
+  -fx-background-radius: 4;
+}
+
+.scroll-bar:vertical .thumb:hover,
+.scroll-bar:horizontal .thumb:hover {
+  -fx-background-color: rgba(100, 100, 100, 0.5);
+}

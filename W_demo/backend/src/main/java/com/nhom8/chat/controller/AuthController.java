@@ -15,20 +15,24 @@ import com.nhom8.chat.dto.RegisterRequest;
 import com.nhom8.chat.dto.ResetPasswordRequest;
 import com.nhom8.chat.entity.AppUser;
 import com.nhom8.chat.entity.UserSession;
+import com.nhom8.chat.entity.enums.DeviceType;
 import com.nhom8.chat.service.AuthService;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
+// controller xử lý các chức năng xác thực người dùng
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
 public class AuthController {
+
     private final AuthService authService;
 
+    // api đăng ký tài khoản
     @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
+    public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request, HttpServletRequest httpRequest) {
         try {
             AppUser user = authService.register(
                     request.getUsername(),
@@ -38,13 +42,22 @@ public class AuthController {
                     request.getFirstName(),
                     request.getLastName());
 
-            return ResponseEntity.ok(AuthResponse.success(
-                    "Đăng ký thành kông",
-                    user.getId(),
+            // tự động đăng nhập và tạo session sau khi đăng ký
+            UserSession session = authService.login(
                     user.getUsername(),
-                    user.getDisplayName(),
-                    null));
+                    request.getPassword(),
+                    DeviceType.WEB,
+                    httpRequest.getHeader("User-Agent"),
+                    httpRequest.getRemoteAddr()
+            );
 
+            return ResponseEntity.ok(AuthResponse.success(
+                "Đăng ký thành kông", 
+                user.getId(), 
+                user.getUsername(),
+                session.getSessionToken()
+            ));
+            
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(AuthResponse.error(e.getMessage()));
         } catch (Exception e) {
@@ -53,6 +66,7 @@ public class AuthController {
         }
     }
 
+    // api đăng nhập
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request,
             HttpServletRequest httpRequest) {
@@ -79,6 +93,7 @@ public class AuthController {
         }
     }
 
+    // api đăng xuất
     @PostMapping("/logout")
     public ResponseEntity<AuthResponse> logout(@RequestHeader("Authorization") String authorization) {
         try {
@@ -95,6 +110,7 @@ public class AuthController {
         }
     }
 
+    // api kiểm tra tính hợp lệ của session
     @GetMapping("/validate")
     public ResponseEntity<AuthResponse> validateSession(@RequestHeader("Authorization") String authorization) {
         try {
@@ -118,49 +134,7 @@ public class AuthController {
         }
     }
 
-    @PostMapping("/forgot-password")
-    public ResponseEntity<AuthResponse> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
-        try {
-            authService.requestPasswordReset(request.getEmail());
-
-            return ResponseEntity.ok(AuthResponse.success(
-                    "Mã OTP đã được gửi đến email của bạn. Vui lòng kiểm tra hộp thư.",
-                    null,
-                    null,
-                    null,
-                    null));
-
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(AuthResponse.error(e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError()
-                    .body(AuthResponse.error("Không thể gửi OTP. Vui lòng thử lại sau."));
-        }
-    }
-
-    @PostMapping("/reset-password")
-    public ResponseEntity<AuthResponse> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
-        try {
-            authService.resetPassword(
-                    request.getEmail(),
-                    request.getOtp(),
-                    request.getNewPassword());
-
-            return ResponseEntity.ok(AuthResponse.success(
-                    "Mật khẩu đã được đặt lại thành công. Vui lòng đăng nhập lại.",
-                    null,
-                    null,
-                    null,
-                    null));
-
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(AuthResponse.error(e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError()
-                    .body(AuthResponse.error("Không thể đặt lại mật khẩu. Vui lòng thử lại."));
-        }
-    }
-
+    // tách session token từ header authorization
     private String extractSessionToken(String authorization) {
         if (authorization != null && authorization.startsWith("Bearer ")) {
             return authorization.substring(7);

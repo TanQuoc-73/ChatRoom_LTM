@@ -31,18 +31,15 @@ public class AuthService {
     public AppUser register(String username, String email, String plainPassword, 
                            String displayName, String firstName, String lastName) {
         
-        // Kiểm tra user đã tồn tại
         if (appUserRepository.findByUsername(username).isPresent()) {
-            throw new IllegalArgumentException("Username already exists: " + username);
+            throw new IllegalArgumentException("Tồn tại mất rồi " + username);
         }
         if (appUserRepository.findByEmail(email).isPresent()) {
-            throw new IllegalArgumentException("Email already exists: " + email);
+            throw new IllegalArgumentException("Email đã tồn tại " + email);
         }
 
-        // Mã hóa mật khẩu với BCrypt
         String passwordHash = passwordEncoder.encode(plainPassword);
 
-        // Tạo user mới
         AppUser user = new AppUser();
         user.setUsername(username);
         user.setEmail(email);
@@ -58,61 +55,67 @@ public class AuthService {
         return appUserRepository.save(user);
     }
 
-    public UserSession login(String username, String plainPassword, DeviceType deviceType, 
-                           String clientInfo, String ipAddress) {
-        
-        AppUser user = appUserRepository.findByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid username or password"));
+   public UserSession login(String username, String plainPassword, DeviceType deviceType, 
+                         String clientInfo, String ipAddress) {
 
-        // Xác thực mật khẩu
-        if (!passwordEncoder.matches(plainPassword, user.getPasswordHash())) {
-            throw new IllegalArgumentException("Invalid username or password");
-        }
+    AppUser user = appUserRepository.findByUsername(username)
+            .orElseThrow(() -> new IllegalArgumentException("Sai tên hoặc pass rồi"));
 
-        if (!user.getActive()) {
-            throw new IllegalArgumentException("Account is deactivated");
-        }
-
-        // Update last active
-        user.setLastActive(Instant.now());
-        appUserRepository.save(user);
-
-        // Tạo session mới
-        UserSession session = new UserSession();
-        session.setUser(user);
-        session.setSessionToken(generateSessionToken());
-        session.setDeviceType(deviceType);
-        session.setClientInfo(clientInfo);
-        session.setIpAddress(ipAddress);
-        session.setOnline(true);
-        session.setConnectedAt(Instant.now());
-        session.setLastHeartbeat(Instant.now());
-
-        return userSessionRepository.save(session);
+    if (!passwordEncoder.matches(plainPassword, user.getPasswordHash())) {
+        throw new IllegalArgumentException("Sai tên hoặc pass rồi");
     }
+
+    if (!user.getActive()) {
+        throw new IllegalArgumentException("Tài khoản bị vô hiệu hóa -1");
+    }
+
+    // 🔥 FIX QUAN TRỌNG NHẤT
+    // Tắt tất cả session cũ của user này
+    userSessionRepository.findByUserIdAndOnlineTrue(user.getId())
+            .forEach(s -> {
+                s.setOnline(false);
+                userSessionRepository.save(s);
+            });
+
+    // cập nhật last active
+    user.setLastActive(Instant.now());
+    appUserRepository.save(user);
+
+    // tạo session mới
+    UserSession session = new UserSession();
+    session.setUser(user);
+    session.setSessionToken(generateSessionToken());
+    session.setDeviceType(deviceType);
+    session.setClientInfo(clientInfo);
+    session.setIpAddress(ipAddress);
+    session.setOnline(true);
+    session.setConnectedAt(Instant.now());
+    session.setLastHeartbeat(Instant.now());
+
+    return userSessionRepository.save(session);
+}
+
 
     public void logout(String sessionToken) {
         UserSession session = userSessionRepository.findBySessionToken(sessionToken)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid session token"));
+                .orElseThrow(() -> new IllegalArgumentException("session token ko hợp lệ"));
         
         session.setOnline(false);
         userSessionRepository.save(session);
     }
 
-    public Optional<AppUser> validateSession(String sessionToken) {
-        Optional<UserSession> sessionOpt = userSessionRepository.findBySessionToken(sessionToken);
-        
-        if (sessionOpt.isPresent()) {
-            UserSession session = sessionOpt.get();
-            if (session.isOnline() && 
-                session.getLastHeartbeat().isAfter(Instant.now().minusSeconds(3600))) {
-                
-                // Update heartbeat
-                session.setLastHeartbeat(Instant.now());
-                userSessionRepository.save(session);
-                
-                return Optional.of(session.getUser());
-            }
+public Optional<AppUser> validateSession(String sessionToken) {
+    Optional<UserSession> sessionOpt = userSessionRepository.findBySessionToken(sessionToken);
+    
+    if (sessionOpt.isPresent()) {
+        UserSession session = sessionOpt.get();
+        if (session.isOnline() && 
+            session.getLastHeartbeat().isAfter(Instant.now().minusSeconds(3600))) {
+ 
+            session.setLastHeartbeat(Instant.now());
+            userSessionRepository.save(session);
+            
+            return Optional.of(session.getUser());
         }
         
         return Optional.empty();
@@ -120,14 +123,12 @@ public class AuthService {
 
     public boolean changePassword(Long userId, String currentPassword, String newPassword) {
         AppUser user = appUserRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Không thấy người dùng bro ơi"));
 
-        // Verify current password
         if (!passwordEncoder.matches(currentPassword, user.getPasswordHash())) {
-            throw new IllegalArgumentException("Current password is incorrect");
+            throw new IllegalArgumentException("Sai pass rồi huhu");
         }
 
-        // Update to new password
         user.setPasswordHash(passwordEncoder.encode(newPassword));
         user.setUpdatedAt(Instant.now());
         appUserRepository.save(user);

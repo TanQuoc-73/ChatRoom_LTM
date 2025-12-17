@@ -1,7 +1,7 @@
 package com.nhom8.chat.mapper;
 
-import com.nhom8.chat.entity.Media;
 import com.nhom8.chat.dto.MediaDTO;
+import com.nhom8.chat.entity.Media;
 
 public class MediaMapper {
 
@@ -14,7 +14,23 @@ public class MediaMapper {
 
         dto.setFileName(media.getFileName());
         dto.setFilePath(media.getFilePath());
-        dto.setFileUrl(media.getFileUrl());
+
+ String fileUrl = media.getFileUrl();
+    if (fileUrl == null || fileUrl.isBlank()) {
+        // không có gì thì tự build
+        fileUrl = "/api/uploads/" + media.getFileName();
+    } else {
+        // nếu đang ở dạng "/uploads/xxx" thì thêm /api vào
+        if (!fileUrl.startsWith("/api/")) {
+            // đảm bảo có dấu /
+            if (!fileUrl.startsWith("/")) {
+                fileUrl = "/" + fileUrl;
+            }
+            fileUrl = "/api" + fileUrl;   // -> /api/uploads/xxx
+        }
+    }
+    dto.setFileUrl(fileUrl);
+ 
         dto.setFileSize(media.getFileSize());
         dto.setMimeType(media.getMimeType());
         dto.setMediaType(media.getMediaType());
@@ -25,6 +41,8 @@ public class MediaMapper {
         dto.setThumbnailPath(media.getThumbnailPath());
         dto.setTemp(media.isTemp());
         dto.setUploadedAt(media.getUploadedAt());
+        dto.setCaption(media.getCaption());
+        dto.setVisibility(media.getVisibility());
 
         return dto;
     }

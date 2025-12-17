@@ -1,9 +1,12 @@
 package com.nhom8.chat.entity;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.nhom8.chat.entity.enums.ConversationType;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -14,6 +17,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -66,4 +70,48 @@ public class Conversation {
 
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt = Instant.now();
+
+    // THÊM: Quan hệ với ConversationMember (cascade delete)
+    @OneToMany(mappedBy = "conversation", 
+               cascade = CascadeType.ALL, 
+               orphanRemoval = true, 
+               fetch = FetchType.LAZY)
+    @Builder.Default
+    private List<ConversationMember> members = new ArrayList<>();
+
+    // THÊM: Quan hệ với ChatMessage (cascade delete)
+    @OneToMany(mappedBy = "conversation", 
+               cascade = CascadeType.ALL, 
+               orphanRemoval = true, 
+               fetch = FetchType.LAZY)
+    @Builder.Default
+    private List<ChatMessage> messages = new ArrayList<>();
+
+    // THÊM: Phương thức helper để thêm member
+    public void addMember(ConversationMember member) {
+        members.add(member);
+        member.setConversation(this);
+    }
+
+    // THÊM: Phương thức helper để thêm message
+    public void addMessage(ChatMessage message) {
+        messages.add(message);
+        message.setConversation(this);
+    }
+
+    // THÊM: Phương thức để xóa tất cả members
+    public void clearMembers() {
+        for (ConversationMember member : new ArrayList<>(members)) {
+            member.setConversation(null);
+        }
+        members.clear();
+    }
+
+    // THÊM: Phương thức để xóa tất cả messages
+    public void clearMessages() {
+        for (ChatMessage message : new ArrayList<>(messages)) {
+            message.setConversation(null);
+        }
+        messages.clear();
+    }
 }

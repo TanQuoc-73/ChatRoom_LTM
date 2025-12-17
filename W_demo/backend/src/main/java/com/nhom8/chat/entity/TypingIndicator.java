@@ -34,5 +34,4 @@ public class TypingIndicator {
 
     @Column(name="started_at", nullable=false) private Instant startedAt = Instant.now();
     @Column(name="expires_at", nullable=false) private Instant expiresAt;
-    // getters/setters
 }

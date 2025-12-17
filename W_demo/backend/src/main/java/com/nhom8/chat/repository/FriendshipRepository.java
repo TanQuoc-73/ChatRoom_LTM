@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import com.nhom8.chat.entity.Friendship;
 import com.nhom8.chat.entity.enums.FriendshipStatus;
 
+
 public interface FriendshipRepository extends JpaRepository<Friendship, Long> {
     
     @Query("SELECT f FROM Friendship f WHERE " +
@@ -26,4 +27,10 @@ public interface FriendshipRepository extends JpaRepository<Friendship, Long> {
                                           @Param("status") FriendshipStatus status);
 
     boolean existsByUser1IdAndUser2IdAndStatus(Long user1Id, Long user2Id, FriendshipStatus status);
+
+@Query("SELECT COUNT(f) > 0 FROM Friendship f WHERE " +
+       "((f.user1.id = :user1Id AND f.user2.id = :user2Id) OR " +
+       "(f.user1.id = :user2Id AND f.user2.id = :user1Id)) AND " +
+       "f.status = 'ACCEPTED'")
+boolean existsFriendshipBetweenUsers(@Param("user1Id") Long user1Id, @Param("user2Id") Long user2Id);
 }

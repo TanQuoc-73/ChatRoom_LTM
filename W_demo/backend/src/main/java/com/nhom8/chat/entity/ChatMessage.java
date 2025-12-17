@@ -1,4 +1,3 @@
-// ChatMessage.java
 package com.nhom8.chat.entity;
 
 import com.nhom8.chat.entity.enums.MessageKind;

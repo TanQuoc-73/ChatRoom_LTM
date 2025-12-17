@@ -1,2 +1,0 @@
-interface 
-Định nghĩa dữ liệu chung

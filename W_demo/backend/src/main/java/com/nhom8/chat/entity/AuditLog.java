@@ -31,7 +31,7 @@ public class AuditLog {
     private Long id;
 
     @ManyToOne(fetch=FetchType.LAZY) @JoinColumn(name="user_id")
-    private AppUser user; // nullable
+    private AppUser user; 
 
     @Column(name="action_type", length=100, nullable=false) private String actionType;
 
@@ -45,5 +45,5 @@ public class AuditLog {
     @Column(name="user_agent", length=500) private String userAgent;
 
     @Column(name="created_at", nullable=false) private Instant createdAt = Instant.now();
-    // getters/setters
+    
 }

@@ -1,15 +1,5 @@
 package com.nhom8.chat.service;
 
-import com.nhom8.chat.entity.Media;
-import com.nhom8.chat.entity.AppUser;
-import com.nhom8.chat.entity.enums.MediaType;
-import com.nhom8.chat.repository.MediaRepository;
-import com.nhom8.chat.repository.AppUserRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -18,52 +8,56 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.nhom8.chat.entity.AppUser;
+import com.nhom8.chat.entity.Media;
+import com.nhom8.chat.entity.enums.MediaType;
+import com.nhom8.chat.repository.AppUserRepository;
+import com.nhom8.chat.repository.MediaRepository;
+
+import lombok.RequiredArgsConstructor;
+
 @Service
 @Transactional
 @RequiredArgsConstructor
 public class MediaService {
     private final MediaRepository mediaRepository;
     private final AppUserRepository appUserRepository;
-    
-    // Thư mục lưu file - có thể config trong application.properties
     private final Path fileStorageLocation = Paths.get("uploads").toAbsolutePath().normalize();
 
-    // Sử dụng @PostConstruct để khởi tạo thư mục
     @jakarta.annotation.PostConstruct
     public void init() {
         try {
             Files.createDirectories(this.fileStorageLocation);
         } catch (IOException e) {
-            throw new RuntimeException("Could not create upload directory", e);
+            throw new RuntimeException("Không thể tạo thư mục tải lên", e);
         }
     }
 
-    // Upload media file
     public Media uploadMedia(Long userId, MultipartFile file, MediaType mediaType) {
         try {
             AppUser user = appUserRepository.findById(userId)
-                    .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                    .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy người dùng"));
 
-            // Validate file
             if (file.isEmpty()) {
-                throw new IllegalArgumentException("File is empty");
+                throw new IllegalArgumentException("File trống");
             }
 
-            // Generate unique filename
             String originalFileName = file.getOriginalFilename();
             String fileExtension = getFileExtension(originalFileName);
             String fileName = UUID.randomUUID().toString() + fileExtension;
             String filePath = this.fileStorageLocation.resolve(fileName).toString();
 
-            // Save file to disk
             Files.copy(file.getInputStream(), Paths.get(filePath));
 
-            // Create media record
             Media media = new Media();
             media.setUser(user);
             media.setFileName(originalFileName);
             media.setFilePath(filePath);
-            media.setFileUrl("/uploads/" + fileName); // URL để truy cập file
+            media.setFileUrl("/uploads/" + fileName); 
             media.setFileSize(file.getSize());
             media.setMimeType(file.getContentType());
             media.setMediaType(mediaType);
@@ -73,11 +67,10 @@ public class MediaService {
             return mediaRepository.save(media);
 
         } catch (IOException e) {
-            throw new RuntimeException("Failed to store file", e);
+            throw new RuntimeException("Không thể lưu file", e);
         }
     }
 
-    // Lấy danh sách media của user
     public List<Media> getUserMedia(Long userId, MediaType mediaType) {
         if (mediaType != null) {
             return mediaRepository.findByUserIdAndMediaType(userId, mediaType);
@@ -85,30 +78,25 @@ public class MediaService {
         return mediaRepository.findByUserId(userId);
     }
 
-    // Xóa media
     public void deleteMedia(Long userId, Long mediaId) {
         Media media = mediaRepository.findById(mediaId)
-                .orElseThrow(() -> new IllegalArgumentException("Media not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Không thấy media"));
 
-        // Kiểm tra quyền sở hữu
         if (!media.getUser().getId().equals(userId)) {
-            throw new IllegalArgumentException("Not authorized to delete this media");
+            throw new IllegalArgumentException("không thể xóa media");
         }
 
         try {
-            // Xóa file từ disk
             Files.deleteIfExists(Paths.get(media.getFilePath()));
-            // Xóa record từ database
             mediaRepository.delete(media);
         } catch (IOException e) {
-            throw new RuntimeException("Failed to delete file", e);
+            throw new RuntimeException("không thể xóa file", e);
         }
     }
 
-    // Lấy media by ID
     public Media getMedia(Long mediaId) {
         return mediaRepository.findById(mediaId)
-                .orElseThrow(() -> new IllegalArgumentException("Media not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Không thấy media"));
     }
 
     private String getFileExtension(String fileName) {
@@ -116,4 +104,8 @@ public class MediaService {
         int lastDotIndex = fileName.lastIndexOf(".");
         return lastDotIndex > 0 ? fileName.substring(lastDotIndex) : "";
     }
+
+    public Media save(Media media) {
+    return mediaRepository.save(media);
+}
 }
