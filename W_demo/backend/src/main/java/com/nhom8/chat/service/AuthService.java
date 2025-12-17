@@ -103,22 +103,23 @@ public class AuthService {
         userSessionRepository.save(session);
     }
 
-public Optional<AppUser> validateSession(String sessionToken) {
-    Optional<UserSession> sessionOpt = userSessionRepository.findBySessionToken(sessionToken);
-    
-    if (sessionOpt.isPresent()) {
-        UserSession session = sessionOpt.get();
-        if (session.isOnline() && 
-            session.getLastHeartbeat().isAfter(Instant.now().minusSeconds(3600))) {
- 
-            session.setLastHeartbeat(Instant.now());
-            userSessionRepository.save(session);
-            
-            return Optional.of(session.getUser());
+    public Optional<AppUser> validateSession(String sessionToken) {
+        Optional<UserSession> sessionOpt = userSessionRepository.findBySessionToken(sessionToken);
+
+        if (sessionOpt.isPresent()) {
+            UserSession session = sessionOpt.get();
+            if (session.isOnline() &&
+                    session.getLastHeartbeat().isAfter(Instant.now().minusSeconds(3600))) {
+
+                session.setLastHeartbeat(Instant.now());
+                userSessionRepository.save(session);
+
+                return Optional.of(session.getUser());
+            }
+        }
+
+        return Optional.empty();
     }
-    
-    return Optional.empty();
-}
 
     public boolean changePassword(Long userId, String currentPassword, String newPassword) {
         AppUser user = appUserRepository.findById(userId)
