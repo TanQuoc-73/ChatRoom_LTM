@@ -32,7 +32,8 @@ public class AuthController {
 
     // api đăng ký tài khoản
     @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request, HttpServletRequest httpRequest) {
+    public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request,
+            HttpServletRequest httpRequest) {
         try {
             AppUser user = authService.register(
                     request.getUsername(),
@@ -48,16 +49,15 @@ public class AuthController {
                     request.getPassword(),
                     DeviceType.WEB,
                     httpRequest.getHeader("User-Agent"),
-                    httpRequest.getRemoteAddr()
-            );
+                    httpRequest.getRemoteAddr());
 
             return ResponseEntity.ok(AuthResponse.success(
-                "Đăng ký thành kông", 
-                user.getId(), 
-                user.getUsername(),
-                session.getSessionToken()
-            ));
-            
+                    "Đăng ký thành kông",
+                    user.getId(),
+                    user.getUsername(),
+                    user.getDisplayName(),
+                    session.getSessionToken()));
+
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(AuthResponse.error(e.getMessage()));
         } catch (Exception e) {
@@ -131,6 +131,45 @@ public class AuthController {
 
         } catch (Exception e) {
             return ResponseEntity.status(401).body(AuthResponse.error("Xác thực phiên ko thành kông"));
+        }
+    }
+
+    // api yêu cầu gửi OTP để reset mật khẩu
+    @PostMapping("/forgot-password")
+    public ResponseEntity<AuthResponse> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        try {
+            authService.requestPasswordReset(request.getEmail());
+
+            return ResponseEntity.ok(AuthResponse.success(
+                    "Mã OTP đã được gửi đến email của bạn. Vui lòng kiểm tra hộp thư.",
+                    null, null, null, null));
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(AuthResponse.error(e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError()
+                    .body(AuthResponse.error("Không thể gửi OTP: " + e.getMessage()));
+        }
+    }
+
+    // api đặt lại mật khẩu với OTP
+    @PostMapping("/reset-password")
+    public ResponseEntity<AuthResponse> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        try {
+            authService.resetPassword(
+                    request.getEmail(),
+                    request.getOtp(),
+                    request.getNewPassword());
+
+            return ResponseEntity.ok(AuthResponse.success(
+                    "Mật khẩu đã được đặt lại thành công. Vui lòng đăng nhập lại.",
+                    null, null, null, null));
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(AuthResponse.error(e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError()
+                    .body(AuthResponse.error("Không thể đặt lại mật khẩu: " + e.getMessage()));
         }
     }
 
