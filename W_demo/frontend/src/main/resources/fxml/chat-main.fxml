@@ -95,7 +95,7 @@
                 <!-- Donate -->
                 <VBox styleClass="panel donate-panel">
                     <children>
-                        <Button onAction="#onDonate" prefHeight="40.0" prefWidth="270.0" styleClass="btn-donate" text="  Ủng hộ team gói mì tôm" />
+                        <Button onAction="#onDonate" prefHeight="40.0" prefWidth="270.0" styleClass="btn-donate" text="  Ủng hộ team gói mì tôm / Nuôi em" />
                     </children>
                 </VBox>
             </VBox>
