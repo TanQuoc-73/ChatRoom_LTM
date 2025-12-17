@@ -99,6 +99,16 @@ public class FriendController {
             return ResponseEntity.badRequest().build();
         }
     }
+    // xóa bạn theo userId (KHÔNG cần friendshipId)
+@DeleteMapping("/by-user")
+public ResponseEntity<Void> removeFriendByUser(
+        @RequestParam Long currentUserId,
+        @RequestParam Long targetUserId
+) {
+    friendshipService.removeFriendByUser(currentUserId, targetUserId);
+    return ResponseEntity.noContent().build();
+}
+
 
     // lấy danh sách lời mời kết bạn
     @GetMapping("/requests")

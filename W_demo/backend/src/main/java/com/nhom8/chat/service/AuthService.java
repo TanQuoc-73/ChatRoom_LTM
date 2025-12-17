@@ -63,19 +63,15 @@ public class AuthService {
         throw new IllegalArgumentException("Tài khoản bị vô hiệu hóa -1");
     }
 
-    // 🔥 FIX QUAN TRỌNG NHẤT
-    // Tắt tất cả session cũ của user này
     userSessionRepository.findByUserIdAndOnlineTrue(user.getId())
             .forEach(s -> {
                 s.setOnline(false);
                 userSessionRepository.save(s);
             });
 
-    // cập nhật last active
     user.setLastActive(Instant.now());
     appUserRepository.save(user);
 
-    // tạo session mới
     UserSession session = new UserSession();
     session.setUser(user);
     session.setSessionToken(generateSessionToken());

@@ -164,6 +164,7 @@ public class MessageService {
                 .id(m.getId())
                 .conversationId(m.getConversation() != null ? m.getConversation().getId() : null)
                 .senderId(m.getSender() != null ? m.getSender().getId() : null)
+                .senderName(m.getSender() != null ? m.getSender().getDisplayName() : null)
                 .content(m.getContent())
                 .messageType(m.getMessageType())
                 .sentAt(m.getSentAt())

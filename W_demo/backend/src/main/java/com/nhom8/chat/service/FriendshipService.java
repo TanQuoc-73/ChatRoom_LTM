@@ -33,30 +33,7 @@ public class FriendshipService {
     private final UserSessionRepository sessionRepo;
     private final UserAvatarRepository avatarRepo;
 
-    // =====================================================
-    // BUILD DTO ONLINE
-    // =====================================================
-    private FriendOnlineDTO buildFriendOnlineDTO(Long friendId) {
 
-        AppUser user = userRepository.findById(friendId).orElseThrow();
-
-        String avatar = avatarRepo.findByUserIdAndCurrentTrue(friendId)
-                .map(a -> a.getMedia().getFileUrl())
-                .orElse(null);
-
-        boolean online = sessionRepo.findOnlineUsers(List.of(friendId)).contains(friendId);
-
-        return new FriendOnlineDTO(
-                friendId,
-                user.getDisplayName(),
-                avatar,
-                online
-        );
-    }
-
-    // =====================================================
-    // SEND FRIEND REQUEST
-    // =====================================================
     @Transactional
     public FriendshipDTO sendFriendRequest(Long currentUserId, FriendRequestDTO requestDTO) {
 
@@ -89,9 +66,25 @@ public class FriendshipService {
         return FriendshipMapper.toDTO(friendshipRepository.save(f));
     }
 
-    // =====================================================
-    // ACCEPT REQUEST
-    // =====================================================
+    @Transactional
+public void removeFriendByUser(Long currentUserId, Long targetUserId) {
+
+    Long u1 = Math.min(currentUserId, targetUserId);
+    Long u2 = Math.max(currentUserId, targetUserId);
+
+    Friendship f = friendshipRepository
+            .findFriendshipBetweenUsers(u1, u2)
+            .orElseThrow(() ->
+                new IllegalArgumentException("Không tìm thấy quan hệ bạn bè")
+            );
+
+    if (f.getStatus() != FriendshipStatus.ACCEPTED) {
+        throw new IllegalArgumentException("Hai người không phải bạn bè");
+    }
+
+    friendshipRepository.delete(f);
+}
+
     @Transactional
     public FriendshipDTO acceptFriendRequest(Long currentUserId, Long friendshipId) {
 
@@ -107,9 +100,6 @@ public class FriendshipService {
         return FriendshipMapper.toDTO(friendshipRepository.save(friendship));
     }
 
-    // =====================================================
-    // REJECT REQUEST
-    // =====================================================
     @Transactional
     public FriendshipDTO rejectFriendRequest(Long currentUserId, Long friendshipId) {
 
@@ -125,9 +115,6 @@ public class FriendshipService {
         return FriendshipMapper.toDTO(friendshipRepository.save(friendship));
     }
 
-    // =====================================================
-    // BLOCK USER
-    // =====================================================
     @Transactional
     public FriendshipDTO blockUser(Long currentUserId, Long targetUserId) {
 
@@ -161,10 +148,6 @@ public class FriendshipService {
 
         return FriendshipMapper.toDTO(friendshipRepository.save(f));
     }
-
-    // =====================================================
-    // UNBLOCK USER
-    // =====================================================
     @Transactional
     public void unblockUser(Long currentUserId, Long targetUserId) {
 
@@ -179,10 +162,6 @@ public class FriendshipService {
 
         friendshipRepository.delete(f);
     }
-
-    // =====================================================
-    // REMOVE FRIEND
-    // =====================================================
     @Transactional
     public void removeFriend(Long currentUserId, Long friendshipId) {
 
@@ -196,37 +175,37 @@ public class FriendshipService {
         friendshipRepository.delete(f);
     }
 
-    // =====================================================
-    // FRIEND LIST (ONLINE + AVATAR)
-    // =====================================================
     public List<FriendOnlineDTO> getFriends(Long currentUserId) {
 
-        List<Friendship> list =
-                friendshipRepository.findByUserIdAndStatus(currentUserId, FriendshipStatus.ACCEPTED);
+    List<Friendship> list =
+        friendshipRepository.findByUserIdAndStatus(
+            currentUserId, FriendshipStatus.ACCEPTED
+        );
 
-        List<Long> friendIds = list.stream()
-                .map(f -> f.getUser1().getId().equals(currentUserId)
-                        ? f.getUser2().getId()
-                        : f.getUser1().getId())
-                .toList();
+    List<Long> friendIds = list.stream()
+        .map(f -> f.getUser1().getId().equals(currentUserId)
+            ? f.getUser2().getId()
+            : f.getUser1().getId())
+        .toList();
 
-        List<Long> onlineUsers = sessionRepo.findOnlineUsers(friendIds);
+    // 🔥 CHỈ ONLINE NẾU CÓ HEARTBEAT TRONG 15s
+    Instant threshold = Instant.now().minusSeconds(15);
+    List<Long> onlineUsers =
+        sessionRepo.findOnlineUsers(friendIds, threshold);
 
-        return friendIds.stream()
-                .map(id -> {
-                    AppUser u = userRepository.findById(id).orElseThrow();
-                    String avatar = avatarRepo.findByUserIdAndCurrentTrue(id)
-                            .map(a -> a.getMedia().getFileUrl())
-                            .orElse(null);
-                    boolean online = onlineUsers.contains(id);
-                    return new FriendOnlineDTO(id, u.getDisplayName(), avatar, online);
-                })
-                .toList();
-    }
+    return friendIds.stream()
+        .map(id -> {
+            AppUser u = userRepository.findById(id).orElseThrow();
+            String avatar = avatarRepo.findByUserIdAndCurrentTrue(id)
+                .map(a -> a.getMedia().getFileUrl())
+                .orElse(null);
 
-    // =====================================================
-    // PENDING & BLOCKED REQUESTS
-    // =====================================================
+            boolean online = onlineUsers.contains(id);
+            return new FriendOnlineDTO(id, u.getDisplayName(), avatar, online);
+        })
+        .toList();
+}
+
     public List<FriendshipDTO> getFriendRequests(Long currentUserId) {
         return friendshipRepository.findByUserIdAndStatus(currentUserId, FriendshipStatus.PENDING)
                 .stream()
@@ -241,9 +220,6 @@ public class FriendshipService {
                 .collect(Collectors.toList());
     }
 
-    // =====================================================
-    // GET FRIENDSHIP RECORD BETWEEN 2 USERS
-    // =====================================================
     public FriendshipDTO getFriendshipBetweenUsers(Long user1Id, Long user2Id) {
         Long a = Math.min(user1Id, user2Id);
         Long b = Math.max(user1Id, user2Id);
@@ -253,9 +229,6 @@ public class FriendshipService {
                 .orElse(null);
     }
 
-    // =====================================================
-    // CHECK IF TWO USERS ARE FRIENDS
-    // =====================================================
     public boolean areFriends(Long user1Id, Long user2Id) {
         Long a = Math.min(user1Id, user2Id);
         Long b = Math.max(user1Id, user2Id);

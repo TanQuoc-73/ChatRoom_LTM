@@ -76,6 +76,31 @@
   -fx-effect: dropshadow(gaussian, rgba(15, 23, 42, 0.18), 12, 0.2, 0, 4);
 }
 
+.notification-badge {
+  -fx-background-color: red;
+  -fx-text-fill: white;
+  -fx-font-size: 11px;
+  -fx-font-weight: bold;
+
+  /* 🔥 4 DÒNG QUAN TRỌNG */
+  -fx-padding: 2 6;
+  -fx-background-radius: 12;
+  -fx-background-insets: 0;
+  -fx-alignment: center;
+
+  /* 🔒 ÉP SIZE TỐI THIỂU → KHÔNG BAO GIỜ MẤT */
+  -fx-min-width: 16;
+  -fx-min-height: 16;
+}
+
+.online-dot {
+  -fx-fill: #22c55e; /* xanh */
+}
+
+.offline-dot {
+  -fx-fill: #9ca3af; /* xám */
+}
+
 .nav-btn:hover {
   -fx-translate-y: -1.5;
   -fx-background-color: linear-gradient(to bottom, #e5edff, #ffffff);

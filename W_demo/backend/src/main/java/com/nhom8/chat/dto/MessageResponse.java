@@ -11,6 +11,7 @@ public class MessageResponse {
     private Long id;
     private Long conversationId;
     private Long senderId;
+    private String senderName;
     private String content;
     private MessageKind messageType;   
     private Instant sentAt;

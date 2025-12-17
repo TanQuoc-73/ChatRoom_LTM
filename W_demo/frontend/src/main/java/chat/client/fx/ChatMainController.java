@@ -32,7 +32,6 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.net.URL;
 import java.net.URLEncoder;
@@ -66,6 +65,10 @@ public class ChatMainController implements Initializable {
     @FXML private Button postPrevBtn, postNextBtn;
     @FXML private ListView<JsonNode> friendsList;
     @FXML private ListView<JsonNode> groupsList;
+    @FXML private Label friendRequestBadge;
+    @FXML private StackPane bellWrapper;
+
+
     
     private final ChatService chatService = ChatService.getInstance();
     private final Preferences prefs = Preferences.userRoot().node("zmnt_chat_session");
@@ -76,9 +79,16 @@ public class ChatMainController implements Initializable {
     private final List<FeedItem> feedItems = new ArrayList<>();
     private int currentFeedIndex = -1;
     private final Map<Long, ChatWindow> openChats = new HashMap<>();
-    private static final DateTimeFormatter TIME_FMT = DateTimeFormatter.ofPattern("HH:mm");
+    private static final DateTimeFormatter CHAT_TIME_FMT =
+        DateTimeFormatter.ofPattern("HH:mm")
+            .withZone(ZoneId.of("Asia/Ho_Chi_Minh"));
+
     private ScheduledExecutorService friendReloadScheduler;
+    private ScheduledExecutorService heartbeatScheduler;
+
     private String currentTheme = "light";
+    
+    
 
 
     private interface ChatWindow {
@@ -87,25 +97,38 @@ public class ChatMainController implements Initializable {
         void close();
     }
     
-    @Override
-    public void initialize(URL location, ResourceBundle resources) {
-        setupSearchPanel();
-        setupListViews();
-        
-        String theme = prefs.get("zmnt_theme", "light");
-        applyTheme(theme);
-        
-        // Load data in background
-        new Thread(this::loadProfileSafe).start();
-        new Thread(this::loadFriendsSafe).start();
-        new Thread(this::loadGroupsSafe).start();
-        new Thread(this::loadFeedSafe).start();
-        
-        startFriendListAutoReload();
+@Override
+public void initialize(URL location, ResourceBundle resources) {
+    setupSearchPanel();
+    setupListViews();
 
-        
-    }
-    
+    String theme = prefs.get("zmnt_theme", "light");
+    applyTheme(theme);
+
+    bellWrapper.sceneProperty().addListener((obs, oldScene, newScene) -> {
+        if (newScene != null) {
+            Platform.runLater(this::loadFriendRequestCount);
+        }
+    });
+
+    new Thread(this::loadProfileSafe).start();
+    new Thread(this::loadFriendsSafe).start();
+    new Thread(this::loadGroupsSafe).start();
+    new Thread(this::loadFeedSafe).start();
+
+    startHeartbeat();
+    startFriendListAutoReload();
+}
+
+private void startHeartbeat() {
+    heartbeatScheduler = Executors.newSingleThreadScheduledExecutor();
+    heartbeatScheduler.scheduleAtFixedRate(() -> {
+        try {
+            chatService.get("/auth/validate");
+        } catch (Exception ignored) {}
+    }, 0, 5, TimeUnit.SECONDS); // mỗi 5s
+}
+
     public void setPrimaryStage(Stage stage) {
         this.primaryStage = stage;
     }
@@ -117,6 +140,7 @@ public class ChatMainController implements Initializable {
     public void dispose() {
         // Close all chat windows
         for (ChatWindow window : openChats.values()) {
+
             window.close();
         }
         openChats.clear();
@@ -125,6 +149,10 @@ public class ChatMainController implements Initializable {
         chatService.disconnectWebSocket();
         if (friendReloadScheduler != null && !friendReloadScheduler.isShutdown()) {
     friendReloadScheduler.shutdownNow();
+    if (heartbeatScheduler != null && !heartbeatScheduler.isShutdown()) {
+    heartbeatScheduler.shutdownNow();
+}
+
 }
     }
     
@@ -312,6 +340,26 @@ public class ChatMainController implements Initializable {
         });
     }
     
+
+private void loadFriendRequestCount() {
+    try {
+        JsonNode arr = chatService.get(
+            "/friends/requests?currentUserId=" + currentUserId
+        );
+
+        int count = (arr != null && arr.isArray()) ? arr.size() : 0;
+
+        Platform.runLater(() -> {
+            if (count > 0) {
+                friendRequestBadge.setText(String.valueOf(count));
+                friendRequestBadge.setVisible(true);
+            } else {
+                friendRequestBadge.setVisible(false);
+            }
+        });
+    } catch (Exception ignored) {}
+}
+
     private void showCurrentFeed() {
         if (currentFeedIndex < 0 || currentFeedIndex >= feedItems.size()) return;
         FeedItem p = feedItems.get(currentFeedIndex);
@@ -339,7 +387,7 @@ public class ChatMainController implements Initializable {
         new Thread(() -> {
             try {
                 String fullUrl = url.startsWith("http") ? url : 
-                        "http://localhost:8081" + (url.startsWith("/") ? url : "/" + url);
+                        "http://192.168.0.100:8081" + (url.startsWith("/") ? url : "/" + url);
                 Image img = new Image(fullUrl, true);
                 img.progressProperty().addListener((obs, oldVal, newVal) -> {
                     if (newVal.doubleValue() == 1.0) {
@@ -357,6 +405,37 @@ public class ChatMainController implements Initializable {
         }).start();
     }
     
+    private boolean confirm(String title, String msg) {
+    Alert a = new Alert(Alert.AlertType.CONFIRMATION, msg,
+            ButtonType.YES, ButtonType.NO);
+    a.setTitle(title);
+    return a.showAndWait().orElse(ButtonType.NO) == ButtonType.YES;
+}
+private void blockFriend(long targetUserId) {
+    try {
+        chatService.post(
+            "/friends/block?currentUserId=" + currentUserId +
+            "&targetUserId=" + targetUserId,
+            ""
+        );
+        loadFriendsSafe();
+    } catch (Exception e) {
+        showError("Chặn thất bại", e.getMessage());
+    }
+}
+
+private void removeFriend(long targetUserId) {
+    try {
+        chatService.delete(
+            "/friends/by-user?currentUserId=" + currentUserId +
+            "&targetUserId=" + targetUserId
+        );
+        loadFriendsSafe();
+    } catch (Exception e) {
+        showError("Xóa bạn thất bại", e.getMessage());
+    }
+}
+
     // ====== EVENT HANDLERS ======
     
     @FXML
@@ -522,9 +601,115 @@ public class ChatMainController implements Initializable {
 }
     
     @FXML
-    private void onNotifications() {
-        showInfo("Thông báo", "Popup lời mời kết bạn sẽ được port sau cho JavaFX.");
+private void onNotifications() {
+    new Thread(this::showFriendRequestDialog).start();
+}
+private void showFriendRequestDialog() {
+    try {
+        JsonNode arr = chatService.get(
+            "/friends/requests?currentUserId=" + currentUserId
+        );
+
+        List<JsonNode> requests = new ArrayList<>();
+        if (arr != null && arr.isArray()) arr.forEach(requests::add);
+
+        Platform.runLater(() -> {
+            Stage dialog = new Stage();
+            dialog.initOwner(primaryStage);
+            dialog.initModality(Modality.APPLICATION_MODAL);
+            dialog.setTitle("Lời mời kết bạn");
+
+            VBox root = new VBox(10);
+            root.setPadding(new Insets(15));
+
+            if (requests.isEmpty()) {
+                root.getChildren().add(new Label("Không có lời mời nào."));
+            } else {
+                ListView<JsonNode> listView = new ListView<>();
+                listView.setItems(FXCollections.observableArrayList(requests));
+                listView.setCellFactory(lv -> new FriendRequestCell(dialog));
+                root.getChildren().add(listView);
+            }
+
+            dialog.setScene(new Scene(root, 360, 420));
+            dialog.show();
+        });
+
+    } catch (Exception e) {
+        showError("Thông báo", e.getMessage());
     }
+}
+ private class FriendRequestCell extends ListCell<JsonNode> {
+
+    private final Stage dialog;
+
+    FriendRequestCell(Stage dialog) {
+        this.dialog = dialog;
+    }
+
+    @Override
+    protected void updateItem(JsonNode item, boolean empty) {
+        super.updateItem(item, empty);
+        if (empty || item == null) {
+            setGraphic(null);
+            return;
+        }
+
+       long friendshipId = item.path("id").asLong();
+
+long senderId = item.path("actionUserId").asLong();
+String senderName = item.path("actionUserName").asText("Người dùng");
+
+Label nameLbl = new Label(senderName);
+nameLbl.setStyle("-fx-font-weight: bold");
+
+
+        Button acceptBtn = new Button("✔ Đồng ý");
+        Button rejectBtn = new Button("✖ Từ chối");
+
+        acceptBtn.setOnAction(e ->
+            new Thread(() -> {
+                try {
+                    chatService.put(
+                        "/friends/requests/" + friendshipId +
+                        "/accept?currentUserId=" + currentUserId,
+                        ""
+                    );
+                    Platform.runLater(() -> dialog.close());
+                    loadFriendRequestCount();
+                } catch (Exception ex) {
+                    showError("Lỗi", ex.getMessage());
+                }
+            }).start()
+        );
+
+        rejectBtn.setOnAction(e ->
+            new Thread(() -> {
+                try {
+                    chatService.put(
+                        "/friends/requests/" + friendshipId +
+                        "/reject?currentUserId=" + currentUserId,
+                        ""
+                    );
+                    Platform.runLater(() -> dialog.close());
+                    loadFriendRequestCount();
+                } catch (Exception ex) {
+                    showError("Lỗi", ex.getMessage());
+                }
+            }).start()
+        );
+
+        HBox btnBox = new HBox(8, acceptBtn, rejectBtn);
+        btnBox.setAlignment(Pos.CENTER_RIGHT);
+
+        VBox box = new VBox(5, nameLbl, btnBox);
+        box.setPadding(new Insets(8));
+        box.setStyle("-fx-border-color:#e5e7eb;-fx-border-radius:8;");
+
+        setGraphic(box);
+    }
+}
+
     
     @FXML
     private void onProfile() {
@@ -804,9 +989,33 @@ private void onCreateGroup() {
     }
     
     @FXML
-    private void onDonate() {
-        showInfo("Ủng hộ team", "Cảm ơn bạn đã ủng hộ team gói mì tôm 🧡.");
-    }
+private void onDonate() {
+    ImageView qrView = new ImageView(
+        new Image(getClass().getResourceAsStream("/images/mbbank-qr.png"))
+    );
+
+    qrView.setFitWidth(260);
+    qrView.setPreserveRatio(true);
+
+    Label text = new Label(
+        "MB Bank\n" +
+        "STK: 0601200488889\n" +
+        "Cảm ơn bạn đã ủng hộ team gói mì tôm <3"
+    );
+    text.setStyle("-fx-font-size: 14px; -fx-text-alignment: center;");
+
+    VBox content = new VBox(10, qrView, text);
+    content.setAlignment(Pos.CENTER);
+    content.setPadding(new Insets(15));
+
+    Alert alert = new Alert(Alert.AlertType.NONE);
+    alert.setTitle("Ủng hộ team");
+    alert.getDialogPane().setContent(content);
+    alert.getButtonTypes().add(ButtonType.CLOSE);
+
+    alert.show();
+}
+
     
     @FXML
     private void onPrevPost() {
@@ -938,6 +1147,32 @@ private class FriendCell extends ListCell<JsonNode> {
         root.getStyleClass().add("friend-cell-root"); // ADD THIS
         root.setSpacing(10);
         HBox.setHgrow(textBox, Priority.ALWAYS);
+ContextMenu menu = new ContextMenu();
+
+MenuItem chatItem = new MenuItem("💬 Nhắn tin");
+MenuItem blockItem = new MenuItem("🚫 Chặn");
+MenuItem removeItem = new MenuItem("❌ Xóa bạn");
+
+chatItem.setOnAction(e ->
+    openDirectChat(friendId, friendName)
+);
+
+blockItem.setOnAction(e -> {
+    if (confirm("Chặn bạn", "Bạn có chắc muốn chặn " + friendName + " ?")) {
+        new Thread(() -> blockFriend(friendId)).start();
+    }
+});
+
+removeItem.setOnAction(e -> {
+    if (confirm("Xóa bạn", "Xóa " + friendName + " khỏi danh sách bạn bè?")) {
+        new Thread(() -> removeFriend(friendId)).start();
+    }
+});
+
+menu.getItems().addAll(chatItem, blockItem, removeItem);
+
+// gắn menu
+setContextMenu(menu);
 
         // THÊM DÒNG NÀY ĐỂ ÁP DỤNG CSS
         root.getStyleClass().add("list-cell-content");

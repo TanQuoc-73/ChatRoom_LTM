@@ -110,17 +110,16 @@ public class ConversationController {
         return ResponseEntity.ok().build();
     }
 
-    // xóa thành viên khỏi hội thoại
-    @DeleteMapping("/{id}/members/{memberId}")
-    public ResponseEntity<?> removeMember(
-            @PathVariable Long id,
-            @PathVariable Long memberId,
-            Principal principal
-    ) {
-        Long userId = Long.parseLong(principal.getName());
-        convService.removeMember(id, memberId, userId);
-        return ResponseEntity.noContent().build();
-    }
+@DeleteMapping("/{id}/members/{userIdToRemove}")
+public ResponseEntity<?> removeMember(
+        @PathVariable Long id,
+        @PathVariable Long userIdToRemove,
+        Principal principal
+) {
+    Long actorId = Long.parseLong(principal.getName());
+    convService.removeMember(id, userIdToRemove, actorId);
+    return ResponseEntity.noContent().build();
+}
 
     // lấy chi tiết hội thoại
     @GetMapping("/{id}")

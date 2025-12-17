@@ -278,8 +278,6 @@ public Conversation createGroupConversation(ConversationCreateRequest req, Long 
             // 4.5 Xóa conversation
             log.info("14. Deleting conversation entity...");
             convRepo.delete(conv);
-            
-            // 4.6 Force flush để commit transaction
             convRepo.flush();
             
             log.info("========== DELETE CONVERSATION SUCCESS ==========");
@@ -288,8 +286,7 @@ public Conversation createGroupConversation(ConversationCreateRequest req, Long 
         } catch (Exception e) {
             log.error("========== DELETE CONVERSATION FAILED ==========");
             log.error("Error deleting conversation {}: {}", conversationId, e.getMessage(), e);
-            
-            // Thử xóa bằng native query
+
             log.info("Trying native query delete as fallback...");
             try {
                 deleteConversationNative(conversationId);
@@ -301,7 +298,6 @@ public Conversation createGroupConversation(ConversationCreateRequest req, Long 
         }
     }
 
-    // Helper methods for native deletes
     private void deleteStatusNative(Long conversationId) {
         try {
             int count = entityManager.createNativeQuery(
@@ -357,20 +353,10 @@ public Conversation createGroupConversation(ConversationCreateRequest req, Long 
         try {
             // Xóa bằng native query để tránh constraint issues
             log.info("Deleting related tables with native queries...");
-            
-            // 1. Xóa message_status
             deleteStatusNative(conversationId);
-            
-            // 2. Xóa message_attachment  
             deleteAttachmentsNative(conversationId);
-            
-            // 3. Xóa chat_message
             deleteMessagesNative(conversationId);
-            
-            // 4. Xóa conversation_member
             deleteMembersNative(conversationId);
-            
-            // 5. Xóa conversation
             int convCount = entityManager.createNativeQuery(
                 "DELETE FROM conversation WHERE id = ?1")
                 .setParameter(1, conversationId)
@@ -535,8 +521,7 @@ public void addMember(Long conversationId, AddMemberRequest req, Long actorId) {
         if (req.getMemberIds() != null && req.getMemberIds().size() < 2) {
             throw new IllegalArgumentException("Nhóm chat cần ít nhất 3 thành viên (bao gồm cả bạn)");
         }
-        
-        // Kiểm tra tất cả thành viên đều là bạn bè
+
          if (req.getMemberIds() != null) {
         List<Long> allMembers = new ArrayList<>(req.getMemberIds());
         allMembers.add(creatorId);
@@ -546,8 +531,6 @@ public void addMember(Long conversationId, AddMemberRequest req, Long actorId) {
                 throw new IllegalArgumentException("Người dùng không tồn tại: " + memberId);
             }
         }
-        
-        // BỎ KIỂM TRA BẠN BÈ - không yêu cầu các thành viên phải là bạn bè
     }
     }
     

@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import chat.client.fx.service.ChatService;
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
@@ -18,6 +19,7 @@ import javafx.scene.control.*;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.WindowEvent;
@@ -26,6 +28,7 @@ import chat.client.fx.ChatWindowController;
 
 import java.io.IOException;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -40,6 +43,7 @@ public class ChatWindowController {
     @FXML private Button btnSend;
     @FXML private Button btnMinimize;
     @FXML private Button btnClose;
+    @FXML private Button btnManageGroup;
     @FXML private VBox chatContainer;
     @FXML private HBox inputBox;
     
@@ -59,10 +63,10 @@ public class ChatWindowController {
     private boolean isCreator;
 
 
-    private double normalWidth = 330;      // Web: 330px
-    private double normalHeight = 520;     // Web: 520px
-    private double minimizedWidth = 200;   // Thanh minimized nhỏ hơn
-    private double minimizedHeight = 40;   // Web minimized: 40px
+    private double normalWidth = 330;    
+    private double normalHeight = 520;     
+    private double minimizedWidth = 200;   
+    private double minimizedHeight = 40;   
     private double originalX, originalY;
     
     private int unreadCount = 0;
@@ -258,10 +262,167 @@ public class ChatWindowController {
         hideWindow();
     }
     
+    
     @FXML
     private void onSendMessage() {
         sendMessage();
     }
+
+    @FXML
+private void onManageGroup() {
+    showManageMembersDialog();
+}
+
+private void showManageMembersDialog() {
+    Stage dialog = new Stage();
+    dialog.initOwner(stage);
+    dialog.initModality(Modality.APPLICATION_MODAL);
+    dialog.setTitle("Quản lý thành viên");
+
+    VBox root = new VBox(10);
+    root.setPadding(new Insets(15));
+
+    ListView<JsonNode> membersView = new ListView<>();
+
+    new Thread(() -> {
+        try {
+            JsonNode arr = chatService.get(
+                "/conversations/" + conversationId + "/members"
+            );
+            List<JsonNode> members = new ArrayList<>();
+            if (arr != null && arr.isArray()) arr.forEach(members::add);
+
+            Platform.runLater(() ->
+                membersView.setItems(FXCollections.observableArrayList(members))
+            );
+        } catch (Exception e) { e.printStackTrace(); }
+    }).start();
+
+    membersView.setCellFactory(lv -> new ListCell<>() {
+        @Override
+        protected void updateItem(JsonNode m, boolean empty) {
+            super.updateItem(m, empty);
+            if (empty || m == null) {
+                setGraphic(null);
+                return;
+            }
+
+            long uid = m.path("userId").asLong();
+            String name = m.path("displayName").asText("Người dùng");
+            String role = m.path("role").asText("");
+
+            Label lbl = new Label(name + ("CREATOR".equals(role) ? " (Tạo nhóm)" : ""));
+
+            Button kick = new Button("❌");
+            kick.setDisable("CREATOR".equals(role));
+            kick.setOnAction(e ->
+                new Thread(() -> removeMember(uid)).start()
+            );
+
+            HBox box = new HBox(10, lbl, kick);
+            box.setAlignment(Pos.CENTER_LEFT);
+            setGraphic(box);
+        }
+    });
+
+    Button addBtn = new Button("➕ Thêm thành viên");
+    addBtn.setOnAction(e -> showAddMemberDialog());
+
+    root.getChildren().addAll(membersView, addBtn);
+    dialog.setScene(new Scene(root, 320, 420));
+    dialog.show();
+}
+
+private void removeMember(long userId) {
+    try {
+        chatService.delete(
+            "/conversations/" + conversationId + "/members/" + userId
+        );
+    } catch (Exception e) {
+        showErrorAlert("Xóa thất bại", e.getMessage());
+    }
+}
+private void showAddMemberDialog() {
+    Stage dialog = new Stage();
+    dialog.initOwner(stage);
+    dialog.initModality(Modality.APPLICATION_MODAL);
+    dialog.setTitle("Thêm thành viên");
+
+    VBox root = new VBox(10);
+    root.setPadding(new Insets(15));
+
+    Label title = new Label("Chọn bạn bè để thêm vào nhóm");
+
+    ListView<JsonNode> friendsView = new ListView<>();
+
+    // Load danh sách bạn bè
+    new Thread(() -> {
+        try {
+            JsonNode arr = chatService.get(
+                "/friends?currentUserId=" + currentUserId
+            );
+            List<JsonNode> friends = new ArrayList<>();
+            if (arr != null && arr.isArray()) arr.forEach(friends::add);
+
+            Platform.runLater(() ->
+                friendsView.setItems(FXCollections.observableArrayList(friends))
+            );
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }).start();
+
+    friendsView.setCellFactory(lv -> new ListCell<>() {
+        @Override
+        protected void updateItem(JsonNode f, boolean empty) {
+            super.updateItem(f, empty);
+            if (empty || f == null) {
+                setGraphic(null);
+                return;
+            }
+
+            long uid = f.path("userId").asLong();
+            String name = f.path("displayName").asText("Người dùng");
+
+            Label lbl = new Label(name);
+            Button add = new Button("➕");
+
+            add.setOnAction(e ->
+                new Thread(() -> addMember(uid)).start()
+            );
+
+            HBox box = new HBox(10, lbl, add);
+            box.setAlignment(Pos.CENTER_LEFT);
+            setGraphic(box);
+        }
+    });
+
+    root.getChildren().addAll(title, friendsView);
+    dialog.setScene(new Scene(root, 320, 420));
+    dialog.show();
+}
+
+private void addMember(long userId) {
+    try {
+        ObjectNode body = mapper.createObjectNode();
+        body.put("userId", userId);
+
+        chatService.post(
+            "/conversations/" + conversationId + "/members",
+            body
+        );
+
+        Platform.runLater(() ->
+            showInfoAlert("Thành công", "Đã thêm thành viên")
+        );
+
+    } catch (Exception e) {
+        Platform.runLater(() ->
+            showErrorAlert("Thêm thất bại", e.getMessage())
+        );
+    }
+}
+
     
     @FXML
     private void onAttachFile() {
@@ -442,10 +603,32 @@ private void initGroup(long convId, String groupName) {
         if (stage != null) stage.setTitle("Nhóm • " + groupName);
     });
 
-    new Thread(() -> {
+new Thread(() -> {
+    try {
+        // 1. Load tin nhắn cũ
         loadMessages();
+
+        // 2. Subscribe realtime
         subscribeRealtime();
-    }).start();
+
+        // 3. Kiểm tra quyền CREATOR (chỉ cho GROUP)
+        if (isGroup) {
+            JsonNode conv = chatService.get("/conversations/" + conversationId);
+            long creatorId = conv.path("createdBy").path("id").asLong(
+                             conv.path("createdBy").asLong(0));
+
+            isCreator = creatorId == currentUserId;
+
+            Platform.runLater(() ->
+                btnManageGroup.setVisible(isCreator)
+            );
+        }
+
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+}).start();
+
 }
 
 
@@ -571,7 +754,12 @@ if (senderId == currentUserId) {
             if (sentAtRaw != null && !sentAtRaw.isBlank()) {
                 try {
                     OffsetDateTime dt = OffsetDateTime.parse(sentAtRaw);
-                    timeStr = dt.toLocalTime().format(DateTimeFormatter.ofPattern("HH:mm"));
+
+timeStr = dt
+    .atZoneSameInstant(ZoneId.of("Asia/Ho_Chi_Minh"))
+    .toLocalTime()
+    .format(DateTimeFormatter.ofPattern("HH:mm"));
+
                 } catch (Exception e) {
                     timeStr = "";
                 }
