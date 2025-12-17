@@ -28,9 +28,9 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
 
-    public AppUser register(String username, String email, String plainPassword, 
-                           String displayName, String firstName, String lastName) {
-        
+    public AppUser register(String username, String email, String plainPassword,
+            String displayName, String firstName, String lastName) {
+
         if (appUserRepository.findByUsername(username).isPresent()) {
             throw new IllegalArgumentException("Tồn tại mất rồi " + username);
         }
@@ -55,51 +55,50 @@ public class AuthService {
         return appUserRepository.save(user);
     }
 
-   public UserSession login(String username, String plainPassword, DeviceType deviceType, 
-                         String clientInfo, String ipAddress) {
+    public UserSession login(String username, String plainPassword, DeviceType deviceType,
+            String clientInfo, String ipAddress) {
 
-    AppUser user = appUserRepository.findByUsername(username)
-            .orElseThrow(() -> new IllegalArgumentException("Sai tên hoặc pass rồi"));
+        AppUser user = appUserRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("Sai tên hoặc pass rồi"));
 
-    if (!passwordEncoder.matches(plainPassword, user.getPasswordHash())) {
-        throw new IllegalArgumentException("Sai tên hoặc pass rồi");
+        if (!passwordEncoder.matches(plainPassword, user.getPasswordHash())) {
+            throw new IllegalArgumentException("Sai tên hoặc pass rồi");
+        }
+
+        if (!user.getActive()) {
+            throw new IllegalArgumentException("Tài khoản bị vô hiệu hóa -1");
+        }
+
+        // 🔥 FIX QUAN TRỌNG NHẤT
+        // Tắt tất cả session cũ của user này
+        userSessionRepository.findByUserIdAndOnlineTrue(user.getId())
+                .forEach(s -> {
+                    s.setOnline(false);
+                    userSessionRepository.save(s);
+                });
+
+        // cập nhật last active
+        user.setLastActive(Instant.now());
+        appUserRepository.save(user);
+
+        // tạo session mới
+        UserSession session = new UserSession();
+        session.setUser(user);
+        session.setSessionToken(generateSessionToken());
+        session.setDeviceType(deviceType);
+        session.setClientInfo(clientInfo);
+        session.setIpAddress(ipAddress);
+        session.setOnline(true);
+        session.setConnectedAt(Instant.now());
+        session.setLastHeartbeat(Instant.now());
+
+        return userSessionRepository.save(session);
     }
-
-    if (!user.getActive()) {
-        throw new IllegalArgumentException("Tài khoản bị vô hiệu hóa -1");
-    }
-
-    // 🔥 FIX QUAN TRỌNG NHẤT
-    // Tắt tất cả session cũ của user này
-    userSessionRepository.findByUserIdAndOnlineTrue(user.getId())
-            .forEach(s -> {
-                s.setOnline(false);
-                userSessionRepository.save(s);
-            });
-
-    // cập nhật last active
-    user.setLastActive(Instant.now());
-    appUserRepository.save(user);
-
-    // tạo session mới
-    UserSession session = new UserSession();
-    session.setUser(user);
-    session.setSessionToken(generateSessionToken());
-    session.setDeviceType(deviceType);
-    session.setClientInfo(clientInfo);
-    session.setIpAddress(ipAddress);
-    session.setOnline(true);
-    session.setConnectedAt(Instant.now());
-    session.setLastHeartbeat(Instant.now());
-
-    return userSessionRepository.save(session);
-}
-
 
     public void logout(String sessionToken) {
         UserSession session = userSessionRepository.findBySessionToken(sessionToken)
                 .orElseThrow(() -> new IllegalArgumentException("session token ko hợp lệ"));
-        
+
         session.setOnline(false);
         userSessionRepository.save(session);
     }
@@ -116,10 +115,10 @@ public Optional<AppUser> validateSession(String sessionToken) {
             userSessionRepository.save(session);
             
             return Optional.of(session.getUser());
-        }
-        
-        return Optional.empty();
     }
+    
+    return Optional.empty();
+}
 
     public boolean changePassword(Long userId, String currentPassword, String newPassword) {
         AppUser user = appUserRepository.findById(userId)
@@ -137,7 +136,7 @@ public Optional<AppUser> validateSession(String sessionToken) {
     }
 
     // ==================== FORGOT PASSWORD METHODS ====================
-    
+
     public void requestPasswordReset(String email) {
         AppUser user = appUserRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("Email không tồn tại trong hệ thống"));
