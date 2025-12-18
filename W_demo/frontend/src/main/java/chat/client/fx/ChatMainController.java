@@ -387,7 +387,7 @@ private void loadFriendRequestCount() {
         new Thread(() -> {
             try {
                 String fullUrl = url.startsWith("http") ? url : 
-                        "http://192.168.0.100:8081" + (url.startsWith("/") ? url : "/" + url);
+                        "http://192.168.1.8:8081" + (url.startsWith("/") ? url : "/" + url);
                 Image img = new Image(fullUrl, true);
                 img.progressProperty().addListener((obs, oldVal, newVal) -> {
                     if (newVal.doubleValue() == 1.0) {

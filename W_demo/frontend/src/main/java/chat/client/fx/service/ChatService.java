@@ -22,7 +22,7 @@ import chat.client.fx.SessionStore;
 
 
 public class ChatService {
-    private static final String API_BASE = "http://192.168.0.100:8081/api";
+    private static final String API_BASE = "http://192.168.1.8:8081/api";
     private static ChatService instance;
     
     private final HttpClient httpClient;
@@ -84,7 +84,7 @@ public class ChatService {
                 
                 // Create headers
                 Map<String, String> headers = new HashMap<>();
-                headers.put("Origin", "http://192.168.0.100");
+                headers.put("Origin", "http://192.168.1.8");
                 headers.put("User-Agent", "JavaFX-Client");
                 headers.put("Authorization", "Bearer " + token);
                 
