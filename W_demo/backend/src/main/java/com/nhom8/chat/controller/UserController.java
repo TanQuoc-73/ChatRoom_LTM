@@ -2,6 +2,7 @@ package com.nhom8.chat.controller;
 
 import com.nhom8.chat.dto.UserProfileDTO;
 import com.nhom8.chat.dto.UpdateProfileRequest;
+import com.nhom8.chat.dto.ChangePasswordRequest;
 import com.nhom8.chat.service.AuthService;
 import com.nhom8.chat.service.UserService;
 import jakarta.validation.Valid;
@@ -9,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
 import java.util.Optional;
 import java.util.List;
 
@@ -43,29 +45,41 @@ public class UserController {
         }
     }
 
-    @PutMapping("/me/avatar")
+    @PatchMapping("/me/avatar")
     public ResponseEntity<UserProfileDTO> updateAvatar(
             @RequestHeader("Authorization") String authorization,
             @RequestParam Long mediaId) {
         try {
-            Long userId = getUserIdFromToken(authorization);
-            UserProfileDTO updatedProfile = userService.updateAvatar(userId, mediaId);
-            return ResponseEntity.ok(updatedProfile);
+            Long userId = getUserIdFromToken(authorization); // ✅ Dùng method có sẵn
+            return ResponseEntity.ok(userService.updateAvatar(userId, mediaId));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().build();
         }
     }
 
-    @PutMapping("/me/cover")
+    @PatchMapping("/me/cover")
     public ResponseEntity<UserProfileDTO> updateCoverPhoto(
             @RequestHeader("Authorization") String authorization,
             @RequestParam Long mediaId) {
         try {
-            Long userId = getUserIdFromToken(authorization);
-            UserProfileDTO updatedProfile = userService.updateCoverPhoto(userId, mediaId);
-            return ResponseEntity.ok(updatedProfile);
+            Long userId = getUserIdFromToken(authorization); // ✅ Dùng method có sẵn
+            return ResponseEntity.ok(userService.updateCoverPhoto(userId, mediaId));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @PutMapping("/me/password")
+    public ResponseEntity<?> changePassword(
+            @RequestHeader("Authorization") String authorization,
+            @Valid @RequestBody ChangePasswordRequest request) {
+        try {
+            Long userId = getUserIdFromToken(authorization);
+            authService.changePassword(userId, request.getOldPassword(), request.getNewPassword());
+            return ResponseEntity.ok(Map.of("message", "Đổi mật khẩu thành công"));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("message", e.getMessage()));
         }
     }
 
@@ -79,7 +93,7 @@ public class UserController {
     public ResponseEntity<List<UserProfileDTO>> searchUsers(
             @RequestParam String keyword,
             @RequestParam(defaultValue = "10") int limit) {
-        
+
         List<UserProfileDTO> users = userService.searchUsers(keyword, limit);
         return ResponseEntity.ok(users);
     }

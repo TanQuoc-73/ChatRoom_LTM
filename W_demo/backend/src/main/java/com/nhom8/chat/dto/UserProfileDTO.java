@@ -1,10 +1,13 @@
 package com.nhom8.chat.dto;
 
+import java.time.Instant;
+import java.time.LocalDate;
+
 import com.nhom8.chat.entity.enums.Gender;
+import com.nhom8.chat.entity.enums.UserRole;
+
 import lombok.Builder;
 import lombok.Data;
-import java.time.LocalDate;
-import java.time.Instant;
 
 @Data
 @Builder
@@ -23,4 +26,5 @@ public class UserProfileDTO {
     private Instant lastActive;
     private String avatarUrl;
     private String coverUrl;
+     private UserRole role;
 }

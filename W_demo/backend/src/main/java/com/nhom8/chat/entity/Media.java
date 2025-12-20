@@ -75,5 +75,17 @@ private String caption;
 @Column(name = "visibility", length = 20, nullable = false)
 private String visibility = "PUBLIC";
 
+@Column(name = "is_hidden", nullable = false)
+    private Boolean hidden = false;
+    
+    public Boolean isHidden() {
+        return hidden;
+    }
+    
+
+@Column(name = "violation_count", nullable = false)
+private Integer violationCount = 0;
+
+
     
 }

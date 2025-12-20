@@ -1,25 +1,26 @@
 package com.nhom8.chat.service;
 
-import com.nhom8.chat.dto.UserProfileDTO;
-import com.nhom8.chat.dto.UpdateProfileRequest;
-import com.nhom8.chat.entity.AppUser;
-import com.nhom8.chat.entity.UserAvatar;
-import com.nhom8.chat.entity.UserCoverPhoto;
-import com.nhom8.chat.entity.Media;
-import com.nhom8.chat.repository.AppUserRepository;
-import com.nhom8.chat.repository.UserAvatarRepository;
-import com.nhom8.chat.repository.UserCoverPhotoRepository;
-import com.nhom8.chat.repository.MediaRepository;
-import lombok.RequiredArgsConstructor;
+import java.time.Instant;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import com.nhom8.chat.dto.UpdateProfileRequest;
+import com.nhom8.chat.dto.UserProfileDTO;
+import com.nhom8.chat.entity.AppUser;
+import com.nhom8.chat.entity.Media;
+import com.nhom8.chat.entity.UserAvatar;
+import com.nhom8.chat.entity.UserCoverPhoto;
+import com.nhom8.chat.repository.AppUserRepository;
+import com.nhom8.chat.repository.MediaRepository;
+import com.nhom8.chat.repository.UserAvatarRepository;
+import com.nhom8.chat.repository.UserCoverPhotoRepository;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
 @Transactional
@@ -52,6 +53,8 @@ public class UserService {
                 .lastActive(user.getLastActive())
                 .avatarUrl(currentAvatar.map(avatar -> avatar.getMedia().getFileUrl()).orElse(null))
                 .coverUrl(currentCover.map(cover -> cover.getMedia().getFileUrl()).orElse(null))
+                .role(user.getRole())
+
                 .build();
     }
 
@@ -155,6 +158,7 @@ public class UserService {
                 .lastActive(user.getLastActive())
                 .avatarUrl(currentAvatar.map(avatar -> avatar.getMedia().getFileUrl()).orElse(null))
                 .coverUrl(currentCover.map(cover -> cover.getMedia().getFileUrl()).orElse(null))
+                .role(user.getRole())
                 .build();
     }
 }

@@ -1,0 +1,185 @@
+/* Gallery View - Light Theme */
+
+.gallery-root {
+  -fx-background-color: #f5f5f5;
+}
+
+/* Toolbar */
+.toolbar-container {
+  -fx-background-color: white;
+  -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.1), 4, 0, 0, 2);
+}
+
+.toolbar {
+  -fx-background-color: white;
+}
+
+.gallery-title {
+  -fx-font-size: 20px;
+  -fx-font-weight: bold;
+  -fx-text-fill: #333;
+}
+
+/* Filter Buttons */
+.filter-group {
+  -fx-background-color: #f0f0f0;
+  -fx-background-radius: 8px;
+  -fx-padding: 4px;
+}
+
+.filter-btn {
+  -fx-background-color: transparent;
+  -fx-text-fill: #666;
+  -fx-font-size: 13px;
+  -fx-padding: 6px 14px;
+  -fx-background-radius: 6px;
+  -fx-cursor: hand;
+  -fx-border-color: transparent;
+}
+
+.filter-btn:hover {
+  -fx-background-color: #e0e0e0;
+}
+
+.filter-btn-active {
+  -fx-background-color: #ff7b1a;
+  -fx-text-fill: white;
+}
+
+.filter-btn-active:hover {
+  -fx-background-color: #e66717;
+}
+
+/* Action Buttons */
+.action-btn {
+  -fx-background-color: #4caf50;
+  -fx-text-fill: white;
+  -fx-font-size: 13px;
+  -fx-font-weight: bold;
+  -fx-padding: 8px 16px;
+  -fx-background-radius: 6px;
+  -fx-cursor: hand;
+  -fx-border-color: transparent;
+}
+
+.action-btn:hover {
+  -fx-background-color: #45a049;
+}
+
+.upload-btn {
+  -fx-background-color: #2196f3;
+}
+
+.upload-btn:hover {
+  -fx-background-color: #1976d2;
+}
+
+/* Status Bar */
+.status-bar {
+  -fx-background-color: #fff8e6;
+  -fx-border-color: #ffe082;
+  -fx-border-width: 1px 0 0 0;
+}
+
+.status-text {
+  -fx-text-fill: #666;
+  -fx-font-size: 12px;
+}
+
+/* Gallery Container */
+.gallery-scroll {
+  -fx-background-color: #f5f5f5;
+}
+
+.gallery-scroll .viewport {
+  -fx-background-color: #f5f5f5;
+}
+
+.gallery-container {
+  -fx-background-color: #f5f5f5;
+}
+
+.media-grid {
+  -fx-background-color: transparent;
+}
+
+/* Media Tiles */
+.media-tile {
+  -fx-background-color: white;
+  -fx-background-radius: 12px;
+  -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.08), 6, 0, 0, 2);
+  -fx-cursor: hand;
+}
+
+.media-tile:hover {
+  -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.15), 10, 0, 0, 4);
+  -fx-scale-x: 1.02;
+  -fx-scale-y: 1.02;
+}
+
+.image-container {
+  -fx-background-color: #f9f9f9;
+  -fx-background-radius: 8px;
+}
+
+.media-thumbnail {
+  -fx-background-radius: 8px;
+}
+
+.media-name {
+  -fx-text-fill: #333;
+  -fx-font-size: 13px;
+  -fx-font-weight: bold;
+  -fx-text-alignment: center;
+}
+
+.media-date {
+  -fx-text-fill: #999;
+  -fx-font-size: 11px;
+  -fx-text-alignment: center;
+}
+
+/* Empty State */
+.empty-state {
+  -fx-background-color: transparent;
+}
+
+.empty-icon {
+  -fx-font-size: 64px;
+}
+
+.empty-text {
+  -fx-text-fill: #666;
+  -fx-font-size: 18px;
+  -fx-font-weight: bold;
+}
+
+.empty-subtext {
+  -fx-text-fill: #999;
+  -fx-font-size: 14px;
+}
+
+/* Context Menu */
+.context-menu {
+  -fx-background-color: white;
+  -fx-background-radius: 8px;
+  -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 8, 0, 0, 2);
+}
+
+.menu-item {
+  -fx-padding: 8px 16px;
+}
+
+.menu-item:focused {
+  -fx-background-color: #f0f0f0;
+}
+
+/* Image Viewer */
+.image-viewer {
+  -fx-background-color: rgba(0, 0, 0, 0.9);
+}
+
+/* Progress Indicator */
+.progress-indicator {
+  -fx-progress-color: #ff7b1a;
+}

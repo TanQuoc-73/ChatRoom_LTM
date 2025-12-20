@@ -1,4 +1,0 @@
---patch-module
-chat.client.fx=_
---add-reads
-chat.client.fx=ALL-UNNAMED

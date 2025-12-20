@@ -9,8 +9,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.nhom8.chat.dto.AuthResponse;
+import com.nhom8.chat.dto.ForgotPasswordRequest;
 import com.nhom8.chat.dto.LoginRequest;
 import com.nhom8.chat.dto.RegisterRequest;
+import com.nhom8.chat.dto.ResetPasswordRequest;
 import com.nhom8.chat.entity.AppUser;
 import com.nhom8.chat.entity.UserSession;
 import com.nhom8.chat.entity.enums.DeviceType;
@@ -54,6 +56,7 @@ public class AuthController {
                 "Đăng ký thành kông", 
                 user.getId(), 
                 user.getUsername(),
+                user.getDisplayName(),
                 session.getSessionToken()
             ));
             
@@ -82,6 +85,7 @@ public class AuthController {
                 "Đăng nhập thành kông",
                 session.getUser().getId(),
                 session.getUser().getUsername(),
+                session.getUser().getDisplayName(),
                 session.getSessionToken()
             ));
             
@@ -100,7 +104,7 @@ public class AuthController {
             String sessionToken = extractSessionToken(authorization);
             authService.logout(sessionToken);
             
-            return ResponseEntity.ok(AuthResponse.success("Đăng xuất thành kông, đừng đi mà", null, null, null));
+            return ResponseEntity.ok(AuthResponse.success("Đăng xuất thành kông, đừng đi mà", null, null, null, null));
             
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(AuthResponse.error(e.getMessage()));
@@ -123,6 +127,7 @@ public class AuthController {
                     "Phiên hợp lệ",
                     user.getId(),
                     user.getUsername(),
+                    user.getDisplayName(),
                     sessionToken
                 ));
             } else {
@@ -131,6 +136,45 @@ public class AuthController {
             
         } catch (Exception e) {
             return ResponseEntity.status(401).body(AuthResponse.error("Xác thực phiên ko thành kông"));
+        }
+    }
+
+      // api yêu cầu gửi OTP để reset mật khẩu
+    @PostMapping("/forgot-password")
+    public ResponseEntity<AuthResponse> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        try {
+            authService.requestPasswordReset(request.getEmail());
+
+            return ResponseEntity.ok(AuthResponse.success(
+                    "Mã OTP đã được gửi đến email của bạn. Vui lòng kiểm tra hộp thư.",
+                    null, null, null, null));
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(AuthResponse.error(e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError()
+                    .body(AuthResponse.error("Không thể gửi OTP: " + e.getMessage()));
+        }
+    }
+
+    // api đặt lại mật khẩu với OTP
+    @PostMapping("/reset-password")
+    public ResponseEntity<AuthResponse> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        try {
+            authService.resetPassword(
+                    request.getEmail(),
+                    request.getOtp(),
+                    request.getNewPassword());
+
+            return ResponseEntity.ok(AuthResponse.success(
+                    "Mật khẩu đã được đặt lại thành công. Vui lòng đăng nhập lại.",
+                    null, null, null, null));
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(AuthResponse.error(e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError()
+                    .body(AuthResponse.error("Không thể đặt lại mật khẩu: " + e.getMessage()));
         }
     }
 

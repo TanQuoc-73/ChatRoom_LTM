@@ -1,57 +1,37 @@
 package com.nhom8.chat.controller;
 
-import java.util.List;
-
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
 import com.nhom8.chat.dto.MediaDTO;
 import com.nhom8.chat.entity.enums.MediaType;
-import com.nhom8.chat.mapper.MediaMapper;
-import com.nhom8.chat.service.AuthService;
 import com.nhom8.chat.service.MediaService;
-
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
-// controller cung cấp dữ liệu feed media
+import java.util.List;
+
 @RestController
-@RequestMapping("/feed")
+@RequestMapping("/feed") // Đường dẫn cho feed
 @RequiredArgsConstructor
+@CrossOrigin(origins = "*") // Cho phép frontend truy cập
 public class FeedController {
 
     private final MediaService mediaService;
-    private final AuthService authService;
 
-    // lấy danh sách media hiển thị feed
+    /**
+     * API LẤY FEED: Lấy tất cả các ảnh công khai, phân trang.
+     * Frontend sẽ gọi API này.
+     */
     @GetMapping
-    public ResponseEntity<List<MediaDTO>> getFeed(
-            @RequestHeader("Authorization") String authorization,
+    public ResponseEntity<Page<MediaDTO>> getPublicFeed(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size,
-            @RequestParam(required = false) MediaType mediaType
+            @RequestParam(defaultValue = "10") int size
     ) {
-        Long userId = extractUserId(authorization);
-
-        var mediaList = mediaService.getUserMedia(userId, mediaType);
-
-        return ResponseEntity.ok(
-                mediaList.stream()
-                        .map(MediaMapper::toDTO)
-                        .toList()
-        );
-    }
-
-    // lấy user id từ token trong header
-    private Long extractUserId(String authorization) {
-        if (authorization != null && authorization.startsWith("Bearer ")) {
-            String token = authorization.substring(7);
-            var user = authService.validateSession(token);
-            if (user.isPresent()) return user.get().getId();
-        }
-        throw new IllegalArgumentException("token ko hợp lệ òi");
+        // Lấy các media là ảnh, có trạng thái công khai, sắp xếp theo thời gian mới nhất
+        Pageable pageable = PageRequest.of(page, size);
+        Page<MediaDTO> feedPage = mediaService.getPublicFeed(pageable);
+        return ResponseEntity.ok(feedPage);
     }
 }

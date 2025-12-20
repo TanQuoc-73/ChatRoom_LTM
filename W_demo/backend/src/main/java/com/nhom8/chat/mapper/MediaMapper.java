@@ -12,6 +12,10 @@ public class MediaMapper {
         dto.setId(media.getId());
         dto.setUserId(media.getUser() != null ? media.getUser().getId() : null);
 
+        if (media.getUser() != null) {
+            dto.setAuthorUsername(media.getUser().getDisplayName());
+        }
+
         dto.setFileName(media.getFileName());
         dto.setFilePath(media.getFilePath());
 
@@ -29,8 +33,8 @@ public class MediaMapper {
             fileUrl = "/api" + fileUrl;   // -> /api/uploads/xxx
         }
     }
-    dto.setFileUrl(fileUrl);
- 
+        dto.setFileUrl(media.getFileUrl());
+
         dto.setFileSize(media.getFileSize());
         dto.setMimeType(media.getMimeType());
         dto.setMediaType(media.getMediaType());

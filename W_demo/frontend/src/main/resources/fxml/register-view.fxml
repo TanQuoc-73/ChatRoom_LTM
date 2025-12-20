@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.media.MediaView?>
+
+<StackPane fx:id="root" xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
+           fx:controller="chat.client.fx.RegisterController" styleClass="root">
+
+    <MediaView fx:id="backgroundVideo" fitWidth="${root.width}" fitHeight="${root.height}" preserveRatio="false"/>
+
+    <HBox fx:id="mainContainer" alignment="CENTER_RIGHT" styleClass="right-container">
+        <VBox styleClass="web-container" spacing="0">
+            <Label text="Đăng Ký" styleClass="web-login-header"/>
+
+            <VBox styleClass="web-login-form" spacing="12">
+
+                <TextField fx:id="usernameField" promptText="Tên đăng nhập (*)" styleClass="web-input-field"/>
+                <TextField fx:id="emailField" promptText="Email (*)" styleClass="web-input-field"/>
+
+                <!-- Họ và Tên -->
+                <HBox spacing="10">
+                    <TextField fx:id="firstNameField" promptText="Tên (*)" styleClass="web-input-field" HBox.hgrow="ALWAYS"/>
+                    <TextField fx:id="lastNameField" promptText="Họ (*)" styleClass="web-input-field" HBox.hgrow="ALWAYS"/>
+                </HBox>
+                <TextField fx:id="displayNameField" promptText="Tên hiển thị" styleClass="web-input-field" HBox.hgrow="ALWAYS"/>
+                <!-- Ngày sinh -->
+                <DatePicker fx:id="dateOfBirthPicker" promptText="Ngày sinh" styleClass="web-input-field"/>
+
+                <!-- Giới tính - XÓA toggleGroup -->
+                <HBox spacing="20" alignment="CENTER_LEFT">
+                    <Label text="Giới tính:" styleClass="web-link-text"/>
+                    <RadioButton fx:id="maleRadio" text="Nam"/>
+                    <RadioButton fx:id="femaleRadio" text="Nữ"/>
+                    <RadioButton fx:id="otherRadio" text="Khác"/>
+                </HBox>
+
+                <!-- Mật khẩu -->
+                <HBox styleClass="web-password-row" alignment="CENTER_LEFT">
+                    <PasswordField fx:id="passwordField" promptText="Mật khẩu (*)" styleClass="web-password-input" HBox.hgrow="ALWAYS"/>
+                    <TextField fx:id="passwordVisibleField" promptText="Mật khẩu (*)" visible="false" managed="false"
+                               styleClass="web-password-input-visible" HBox.hgrow="ALWAYS"/>
+                    <Button fx:id="togglePasswordBtn" text="👁" onAction="#onTogglePassword" styleClass="web-password-toggle"/>
+                </HBox>
+
+                <!-- Nhập lại mật khẩu -->
+                <HBox styleClass="web-password-row" alignment="CENTER_LEFT">
+                    <PasswordField fx:id="confirmPasswordField" promptText="Nhập lại mật khẩu (*)" styleClass="web-password-input" HBox.hgrow="ALWAYS"/>
+                    <TextField fx:id="confirmPasswordVisibleField" promptText="Nhập lại mật khẩu (*)" visible="false" managed="false"
+                               styleClass="web-password-input-visible" HBox.hgrow="ALWAYS"/>
+                    <Button fx:id="toggleConfirmBtn" text="👁" onAction="#onToggleConfirmPassword" styleClass="web-password-toggle"/>
+                </HBox>
+
+                <Button fx:id="registerButton" text="Đăng ký" onAction="#onRegister" styleClass="web-login-button"/>
+
+                <Label fx:id="messageLabel" text="" styleClass="web-message-label"/>
+
+                <HBox alignment="CENTER" spacing="4" style="-fx-padding: 5 0 0 0;">
+                    <Label text="Đã có tài khoản?" styleClass="web-link-text"/>
+                    <Hyperlink text="Đăng nhập ngay" onAction="#onLoginLink" styleClass="web-link-hyper"/>
+                </HBox>
+            </VBox>
+        </VBox>
+    </HBox>
+</StackPane>

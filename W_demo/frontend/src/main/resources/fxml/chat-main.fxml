@@ -12,14 +12,16 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<BorderPane prefHeight="800" prefWidth="1200" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="chat.client.fx.ChatMainController">
+<BorderPane maxHeight="Infinity" maxWidth="Infinity"  xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="chat.client.fx.ChatMainController">
 
+    <!-- TOP NAV BAR -->
     <top>
         <HBox styleClass="topbar">
             <children>
                 <HBox styleClass="top-inner" HBox.hgrow="ALWAYS">
                     <children>
 
+                        <!-- BRAND -->
                         <HBox styleClass="brand">
                             <children>
                                 <Label styleClass="brand-mark" text="Z" />
@@ -27,27 +29,33 @@
                             </children>
                         </HBox>
 
+                        <!-- CENTER NAV ICONS -->
                         <HBox styleClass="nav-icons" HBox.hgrow="ALWAYS">
                             <children>
                                 <Button fx:id="btnHome" onAction="#onHome" prefHeight="38.0" prefWidth="81.0" styleClass="nav-btn" text="🏠" />
-                                <Button fx:id="btnPicture" onAction="#onPhotos" styleClass="nav-btn" text="🖼" />
+                                <Button fx:id="btnPicture" onAction="#onCollection" styleClass="nav-btn" text="🖼" />
                                 <Button fx:id="btnPlus" onAction="#onCreatePost" prefHeight="38.0" prefWidth="61.0" styleClass="nav-btn" text="＋" />
                                 <StackPane fx:id="bellWrapper">
-    <Button fx:id="btnBell"
-            onAction="#onNotifications"
-            styleClass="nav-btn"
-            text="🔔"/>
+                                    <Button fx:id="btnBell"
+                                            onAction="#onNotifications"
+                                            styleClass="nav-btn"
+                                            text="🔔"/>
 
-    <Label fx:id="friendRequestBadge"
-       visible="false"
-       StackPane.alignment="TOP_RIGHT"
-       styleClass="notification-badge" />
+                                    <Label fx:id="friendRequestBadge"
+                                           visible="false"
+                                           StackPane.alignment="TOP_RIGHT"
+                                           styleClass="notification-badge" />
 
-</StackPane>
+                                </StackPane>
+                                <Button fx:id="btnUser" onAction="#goToProfile" styleClass="nav-btn" text="👤" />
+                                <Button fx:id="btnAdmin" text="🛡Admin" onAction="#onAdmin" visible="false" styleClass="nav-btn"/>
 
-                                <Button fx:id="btnUser" onAction="#onProfile" styleClass="nav-btn" text="👤" />
+                                <Button text="Logout" onAction="#logout" styleClass="nav-button"/>
+
                             </children>
                         </HBox>
+
+                        <!-- RIGHT -->
                         <HBox styleClass="right-controls">
                             <children>
                                 <Button fx:id="themeToggle" onAction="#onToggleTheme" styleClass="nav-btn">
@@ -63,19 +71,27 @@
             </children>
         </HBox>
     </top>
-   <bottom>
+   <center>
         <HBox styleClass="layout" BorderPane.alignment="CENTER">
+
+            <!-- LEFT COLUMN -->
             <VBox maxWidth="320" minWidth="260" prefWidth="300.0" spacing="18" styleClass="col left-col">
+
+                <!-- Search -->
                 <VBox styleClass="panel search-panel">
                     <children>
                         <TextField fx:id="searchField" onKeyPressed="#onSearchEnter" prefHeight="46.0" prefWidth="260.0" promptText="Search" styleClass="search-field" />
                     </children>
                 </VBox>
+
+                <!-- Search result panel -->
                 <VBox fx:id="searchResultPanel" managed="false" styleClass="panel search-result-panel" visible="false">
                     <children>
                         <ListView fx:id="searchResultsList" styleClass="search-results-list" />
                     </children>
                 </VBox>
+
+                <!-- Quick Actions -->
                 <VBox prefWidth="260.0" spacing="10" styleClass="panel left-actions">
                     <children>
                         <Button fx:id="btnCreate" onAction="#onCreateGroup" prefHeight="46.0" prefWidth="260.0" styleClass="left-action-btn left-action-primary" text="＋ Tạo room chat" textAlignment="CENTER">
@@ -89,36 +105,39 @@
                         <Button fx:id="btnSettings" onAction="#onSettings" prefHeight="50.0" prefWidth="260.0" styleClass="left-action-btn" text="⚙ Cài đặt" textAlignment="CENTER" />
                     </children>
                 </VBox>
+
+                <!-- Donate -->
                 <VBox styleClass="panel donate-panel">
                     <children>
                         <Button onAction="#onDonate" prefHeight="40.0" prefWidth="270.0" styleClass="btn-donate" text="  Ủng hộ team gói mì tôm" />
                     </children>
                 </VBox>
             </VBox>
-            <VBox spacing="14" styleClass="col center-col" HBox.hgrow="ALWAYS">
-                <HBox alignment="CENTER_LEFT" prefHeight="36.0" prefWidth="234.0" spacing="10" styleClass="panel profile-small">
-                    <children>
-                        <ImageView fx:id="profileAvatar" fitHeight="36" fitWidth="36" preserveRatio="true" styleClass="profile-avatar" />
-                        <Label fx:id="profileName" styleClass="profile-name" text="VIPMember" />
-                    </children>
-                </HBox>
-                <VBox spacing="10" styleClass="panel main-post" VBox.vgrow="ALWAYS">
+<StackPane fx:id="mainContentPane"
+           styleClass="col center-col"
+           HBox.hgrow="ALWAYS">
 
-                    <StackPane prefWidth="800" styleClass="main-post-frame" VBox.vgrow="ALWAYS">
+    <VBox fx:id="feedView" spacing="14">
 
-                        <children>
-                            <ImageView fx:id="mainImage" fitHeight="420" preserveRatio="true" styleClass="main-image" />
+        <!-- CURRENT USER SMALL -->
+        <HBox alignment="CENTER_LEFT" prefHeight="36.0" spacing="10" styleClass="panel profile-small">
+            <ImageView fx:id="profileAvatar" fitHeight="36" fitWidth="36"/>
+            <Label fx:id="profileName"/>
+        </HBox>
 
-                            <Button fx:id="postNextBtn" onAction="#onNextPost" styleClass="post-nav-btn post-next" text="❯" StackPane.alignment="CENTER_RIGHT" />
+        <!-- MAIN FEED POST -->
+        <VBox spacing="10" styleClass="panel main-post" VBox.vgrow="ALWAYS">
+            <ListView fx:id="feedListView" VBox.vgrow="ALWAYS"/>
+        </VBox>
 
-                            <Button fx:id="postPrevBtn" onAction="#onPrevPost" styleClass="post-nav-btn post-prev" text="❮" StackPane.alignment="CENTER_LEFT" />
-                        </children>
-                    </StackPane>
-                    <Label fx:id="postCaption" styleClass="post-caption" text="caption hiển thị ở đây" wrapText="true" />
-                </VBox>
-            </VBox>
+    </VBox>
+</StackPane>
+
+
+            <!-- RIGHT COLUMN -->
             <VBox maxWidth="360" minWidth="260" prefWidth="320" spacing="14" styleClass="col right-col">
 
+                <!-- FRIEND LIST -->
                 <VBox alignment="TOP_CENTER" spacing="10" styleClass="panel right-panel">
                     <children>
                         <Label prefWidth="57.0" styleClass="panel-title" text="Các Cốt" />
@@ -126,6 +145,7 @@
                     </children>
                 </VBox>
 
+                <!-- GROUP LIST -->
                 <VBox alignment="TOP_CENTER" spacing="10" styleClass="panel right-panel">
                     <children>
                         <Label styleClass="panel-title" text="Gò rúp chat" />
@@ -134,5 +154,5 @@
                 </VBox>
             </VBox>
         </HBox>
-   </bottom>
+   </center>
 </BorderPane>

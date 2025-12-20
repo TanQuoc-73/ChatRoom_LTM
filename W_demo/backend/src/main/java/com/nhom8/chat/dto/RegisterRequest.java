@@ -1,7 +1,11 @@
 package com.nhom8.chat.dto;
+import java.time.LocalDate;
+
+import com.nhom8.chat.entity.enums.Gender;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Past;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
@@ -30,4 +34,9 @@ public class RegisterRequest {
     @NotBlank(message = "Bắt buộc phải nhập họ")
     @Size(max = 64, message = "Họ không được vượt quá 64 ký tự")
     private String lastName;
+
+    // THÊM 2 TRƯỜNG NÀY
+    @Past(message = "Ngày sinh phải là ngày trong quá khứ")
+    private LocalDate dateOfBirth;
+    private Gender gender;
 }

@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 
 import com.nhom8.chat.entity.enums.Gender;
+import com.nhom8.chat.entity.enums.UserRole;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -68,4 +69,9 @@ public class AppUser {
 
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt = Instant.now();
+
+   @Enumerated(EnumType.STRING)
+   @Column(nullable = false, length = 20)
+   private UserRole role = UserRole.USER;
+
 }

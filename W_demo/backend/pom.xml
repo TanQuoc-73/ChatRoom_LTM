@@ -59,6 +59,11 @@
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
+
 
 		<dependency>
 			<groupId>com.microsoft.sqlserver</groupId>
@@ -75,6 +80,10 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-webflux</artifactId>
+</dependency>
 		<dependency>
     <groupId>chat</groupId>
     <artifactId>chat-system</artifactId>  <!-- đúng y như POM module kia -->
@@ -112,4 +121,3 @@
 	</build>
 
 </project>
-

@@ -1,0 +1,227 @@
+/* --- Màu sắc Tham Khảo --- */
+/* Xám Olive Đậm (Gạch chân Tab): #6B705C */
+/* Xám Trung Bình (Header, Viền): #A9A9A9 */
+/* Xám Nhạt (Nền khối): #EEEEEE */
+/* Xanh Xác minh: #38761D */
+/* Nền Root: #F0F0F0 (Nền ngoài của ứng dụng) */
+
+.root {
+    -fx-background-color: #F0F0F0;
+    -fx-font-family: "Arial", sans-serif;
+}
+
+/* ========================================================================= */
+/* 1. HEADER (Khối 1) */
+/* ========================================================================= */
+#headerBar {
+    -fx-background-color: #A9A9A9; /* Màu xám trung bình */
+    -fx-background-radius: 20px;
+    -fx-padding: 10px 20px;
+}
+
+.logo-text {
+    -fx-font-size: 24pt;
+    -fx-font-weight: bold;
+    -fx-text-fill: black;
+}
+
+.nav-icon {
+    -fx-background-color: transparent;
+    -fx-font-size: 14pt;
+    -fx-text-fill: black;
+    -fx-padding: 5 10;
+    -fx-font-weight: bold;
+}
+
+/* ========================================================================= */
+/* 2. CÁC KHỐI NỘI DUNG (Khối 2, 3, 4, 5) */
+/* ========================================================================= */
+
+/* Khối chung cho Profile, Management, Status */
+.main-panel {
+    -fx-background-color: #EEEEEE; /* Nền khối xám nhạt */
+    -fx-background-radius: 20px;
+    -fx-border-color: #A9A9A9; /* Viền xám mỏng */
+    -fx-border-width: 1px;
+    -fx-border-radius: 20px;
+    -fx-padding: 15px;
+    -fx-max-width: Infinity;
+}
+
+/* Khối Profile (Khối 2) - FIX LỖI DÍNH SÁT BẰNG PADDING ĐÁY LỚN */
+.profile-block {
+    -fx-padding: 0;
+    -fx-max-width: Infinity;
+
+    /* 🛑 CẦN THIẾT: Bù đắp cho Avatar bị kéo lên 70px và tạo thêm khoảng đệm 10px */
+    /* Padding: Top Right Bottom Left */
+    /* Bottom 80px = 70px (bù) + 10px (đệm) */
+    -fx-padding: 0 0 80px 0;
+}
+
+/* ⭐ Ảnh bìa - XÓA các thuộc tính cố định để FXML binding hoạt động */
+.cover-image {
+    /* KHÔNG đặt -fx-fit-height và -fx-fit-width ở đây */
+    /* Để FXML binding điều khiển hoàn toàn */
+    -fx-preserve-ratio: false;
+    -fx-smooth: true;
+}
+
+/* Avatar container */
+.profile-picture {
+    -fx-fit-width: 180;
+    -fx-fit-height: 180;
+}
+
+/* Nút đổi bìa */
+.change-cover-button {
+    -fx-background-color: #A9A9A9;
+    -fx-text-fill: black;
+    -fx-background-radius: 8px;
+    -fx-padding: 5px 10px;
+    -fx-font-size: 10pt;
+    -fx-font-weight: bold;
+}
+
+.change-cover-button:hover {
+    -fx-background-color: #8C8C8C;
+    -fx-cursor: hand;
+}
+
+/* Tên hiển thị */
+.profile-name {
+    -fx-font-size: 20pt;
+    -fx-font-weight: bold;
+    -fx-text-fill: #333333;
+}
+
+/* ========================================================================= */
+/* 3. TABPANE (Khối 3) */
+/* ========================================================================= */
+
+.tab-pane {
+    -fx-background-radius: 20px;
+    -fx-max-width: Infinity;
+}
+
+.tab-pane .tab-header-area {
+    -fx-padding: 0;
+    -fx-background-color: #EEEEEE;
+    -fx-background-radius: 20px 20px 0 0;
+
+}
+
+.tab-pane .tab:selected {
+    -fx-border-color: #6B705C; /* Gạch chân màu Olive */
+    -fx-background-color: #FFFFFF; /* Nền tab trắng khi được chọn */
+    -fx-border-width: 0 0 4px 0;
+}
+
+.tab-pane .tab-label {
+    -fx-font-weight: bold;
+    -fx-font-size: 11pt;
+    -fx-text-fill: black;
+}
+
+.tab-content-area {
+    -fx-background-color: #FFFFFF; /* Nền nội dung trắng */
+    -fx-padding: 15px;
+    -fx-border-radius: 0 0 20px 20px;
+    -fx-border-color: #A9A9A9;
+    -fx-border-width: 0 1px 1px 1px; /* Chỉ viền dưới và hai bên */
+    -fx-max-width: Infinity;
+}
+
+/* GridPane trong tab tự co giãn */
+.tab-content-area .grid-pane {
+    -fx-max-width: Infinity;
+}
+
+/* Labels trong info tự wrap */
+.info-label {
+    -fx-font-weight: bold;
+    -fx-min-width: 100;
+}
+
+/* ========================================================================= */
+/* 4. MANAGEMENT & 5. STATUS PANELS (Khối 4, 5) */
+/* ========================================================================= */
+/* Các khối bên phải giữ nguyên kích thước cố định */
+.mgmt-button {
+    -fx-background-color: #EEEEEE;
+    -fx-text-fill: black;
+    -fx-font-weight: normal;
+    -fx-font-size: 11pt;
+    -fx-background-radius: 10px;
+    -fx-padding: 10px 15px;
+    -fx-border-color: #A9A9A9;
+    -fx-border-width: 1px;
+    -fx-border-radius: 10px;
+    -fx-alignment: CENTER;
+    -fx-max-width: Infinity;
+    -fx-pref-width: Infinity;
+}
+
+/* Tiêu đề Khối Quản lý/Trạng thái */
+.panel-title {
+    -fx-font-weight: bold;
+    -fx-font-size: 14pt;
+    -fx-text-fill: #333333;
+    -fx-border-width: 0 0 1px 0;
+    -fx-border-color: #A9A9A9;
+    -fx-padding: 0 0 5px 0;
+}
+
+/* Nút hành động */
+.mgmt-button {
+    -fx-background-color: #EEEEEE;
+    -fx-text-fill: black;
+    -fx-font-weight: normal;
+    -fx-font-size: 11pt;
+    -fx-background-radius: 10px;
+    -fx-padding: 10px 15px;
+    -fx-border-color: #A9A9A9;
+    -fx-border-width: 1px;
+    -fx-border-radius: 10px;
+    -fx-alignment: CENTER;
+    -fx-max-width: Infinity;
+}
+
+.mgmt-button:hover {
+    -fx-background-color: #DCDCDC;
+    -fx-cursor: hand;
+}
+
+/* Nút Đăng xuất */
+.logout-button {
+    -fx-background-color: #ff6b6b;
+    -fx-text-fill: white;
+}
+
+.logout-button:hover {
+    -fx-background-color: #ff5252;
+}
+
+/* Text Xác minh (Khối 5) */
+#verified-text {
+    -fx-text-fill: #38761D;
+    -fx-font-weight: bold;
+}
+
+.tab-content-area Label {
+    -fx-wrap-text: true;
+}
+
+/* ⭐ Save button styling */
+.save-button {
+    -fx-background-color: #25D366;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-background-radius: 8px;
+    -fx-padding: 8px 20px;
+}
+
+.save-button:hover {
+    -fx-background-color: #1FA855;
+    -fx-cursor: hand;
+}

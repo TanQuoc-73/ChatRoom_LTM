@@ -3,6 +3,9 @@ package chat.client.fx.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+
+import java.io.IOException; // <-- THÊM DÒNG NÀY
+import java.nio.charset.StandardCharsets;
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
@@ -22,7 +25,7 @@ import chat.client.fx.SessionStore;
 
 
 public class ChatService {
-    private static final String API_BASE = "http://192.168.1.8:8081/api";
+    private static final String API_BASE = "http://192.168.0.100:8081/api";
     private static ChatService instance;
     
     private final HttpClient httpClient;
@@ -84,7 +87,7 @@ public class ChatService {
                 
                 // Create headers
                 Map<String, String> headers = new HashMap<>();
-                headers.put("Origin", "http://192.168.1.8");
+                headers.put("Origin", "http://localhost");
                 headers.put("User-Agent", "JavaFX-Client");
                 headers.put("Authorization", "Bearer " + token);
                 
@@ -393,62 +396,79 @@ private HttpRequest.Builder baseRequest(String path) {
         }
         throw new RuntimeException("API Error " + response.statusCode() + ": " + response.body());
     }
-    
-    public JsonNode uploadFile(String path, Path filePath) throws Exception {
-        String boundary = "Boundary-" + System.currentTimeMillis();
-        
+
+    public JsonNode uploadFile(String path, Path filePath, Map<String, String> formData) throws Exception {
+        if (!Files.exists(filePath) || !Files.isRegularFile(filePath)) {
+            throw new IOException("File không tồn tại hoặc không phải là file thông thường: " + filePath);
+        }
+
+        String boundary = "----JavaFXClientBoundary" + System.currentTimeMillis();
+
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        PrintWriter writer = new PrintWriter(new OutputStreamWriter(baos), true);
-        
-        // File part
+        // Dùng OutputStreamWriter với mã hóa UTF-8 để hỗ trợ tiếng Việt
+        OutputStreamWriter writer = new OutputStreamWriter(baos, StandardCharsets.UTF_8);
+
+        // 1. Thêm tất cả các trường dữ liệu từ Map formData vào request
+        for (Map.Entry<String, String> entry : formData.entrySet()) {
+            writer.append("--").append(boundary).append("\r\n");
+            writer.append("Content-Disposition: form-data; name=\"").append(entry.getKey()).append("\"\r\n\r\n");
+            writer.append(entry.getValue()).append("\r\n");
+        }
+
+        // 2. Thêm phần file vào request
         writer.append("--").append(boundary).append("\r\n");
-        writer.append("Content-Disposition: form-data; name=\"file\"; filename=\"")
-                .append(filePath.getFileName().toString()).append("\"\r\n");
-        
+        writer.append("Content-Disposition: form-data; name=\"file\"; filename=\"").append(filePath.getFileName().toString()).append("\"\r\n");
+
         String contentType = Files.probeContentType(filePath);
         if (contentType == null) {
             contentType = "application/octet-stream";
         }
         writer.append("Content-Type: ").append(contentType).append("\r\n\r\n");
-        writer.flush();
-        
+        writer.flush(); // Đẩy các header ra trước khi ghi nội dung file
+
+        // Ghi nội dung file dưới dạng byte
         baos.write(Files.readAllBytes(filePath));
-        writer.append("\r\n");
+
+        writer.append("\r\n"); // Xuống dòng sau nội dung file
         writer.flush();
-        
-        // MediaType part
-        writer.append("--").append(boundary).append("\r\n");
-        writer.append("Content-Disposition: form-data; name=\"mediaType\"\r\n\r\n");
-        writer.append("PHOTO").append("\r\n");
-        writer.flush();
-        
-        // End
-        writer.append("--").append(boundary).append("--").append("\r\n");
+
+        // 3. Kết thúc request
+        writer.append("--").append(boundary).append("--\r\n");
         writer.flush();
         writer.close();
-        
-        byte[] bytes = baos.toByteArray();
-        
+
+        byte[] requestBody = baos.toByteArray();
+
         HttpRequest request = baseRequest(path)
                 .header("Content-Type", "multipart/form-data; boundary=" + boundary)
-                .POST(HttpRequest.BodyPublishers.ofByteArray(bytes))
+                .POST(HttpRequest.BodyPublishers.ofByteArray(requestBody))
                 .timeout(Duration.ofSeconds(30))
                 .build();
-        
+
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-        
+
         if (response.statusCode() >= 200 && response.statusCode() < 300) {
             String body = response.body();
             if (body == null || body.isBlank()) return null;
             return mapper.readTree(body);
         }
-        throw new RuntimeException("Upload Error " + response.statusCode() + ": " + response.body());
+        throw new IOException("Upload failed with status: " + response.statusCode() + " and body: " + response.body());
     }
-    
-    // Overload cho File
+
     public JsonNode uploadFile(String path, java.io.File file) throws Exception {
-        return uploadFile(path, file.toPath());
+        // Tạo một Map với các giá trị mặc định
+        Map<String, String> formData = new HashMap<>();
+        formData.put("mediaType", "PHOTO"); // Gallery chỉ cần upload ảnh
+
+        // Gọi đến phương thức chính để xử lý
+        return uploadFile(path, file.toPath(), formData);
     }
+
+
+    public ObjectMapper getMapper() {
+    return mapper;
+}
+
     
     public void shutdown() {
         disconnectWebSocket();

@@ -10,6 +10,7 @@ import lombok.Data;
 public class MediaDTO {
     private Long id;
     private Long userId;
+    private String authorUsername;
 
     private String fileName;
     private String filePath;
