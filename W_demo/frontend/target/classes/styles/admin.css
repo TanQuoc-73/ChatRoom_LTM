@@ -1,0 +1,29 @@
+.admin-pane {
+    -fx-background-color: #f4f4f4;
+    -fx-border-color: #dcdcdc;
+    -fx-border-radius: 5;
+}
+
+.admin-header {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #dcdcdc;
+    -fx-border-radius: 5;
+    -fx-padding: 10;
+}
+
+.admin-table {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #dcdcdc;
+    -fx-border-radius: 5;
+}
+
+.admin-button {
+    -fx-background-color: #0275d8;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+}
+
+.admin-button:hover {
+    -fx-background-color: #025aa5;
+}

@@ -1,25 +1,29 @@
-<BorderPane xmlns:fx="http://javafx.com/fxml"
-            fx:controller="chat.client.fx.AdminController">
+<?xml version="1.0" encoding="UTF-8"?>
 
-    <top>
-        <HBox spacing="10" padding="10">
-            <Label text="🛡 ADMIN MODERATION"
-                   style="-fx-font-size:18px;-fx-font-weight:bold"/>
-            <Button text="🔄 Refresh" onAction="#loadData"/>
-        </HBox>
-    </top>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
 
-    <center>
-        <TableView fx:id="table">
+<VBox xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
+      fx:controller="chat.client.fx.AdminController"
+      spacing="20" alignment="CENTER" style="-fx-padding: 20;">
 
-            <columns>
-                <TableColumn fx:id="colId" text="ID" prefWidth="60"/>
-                <TableColumn fx:id="colUser" text="User" prefWidth="120"/>
-                <TableColumn fx:id="colCaption" text="Caption" prefWidth="300"/>
-                <TableColumn fx:id="colViolation" text="⚠" prefWidth="60"/>
-                <TableColumn fx:id="colAction" text="Action" prefWidth="260"/>
-            </columns>
+    <Label text="Quản Lý Người Dùng" style="-fx-font-size: 24px; -fx-font-weight: bold;"/>
 
-        </TableView>
-    </center>
-</BorderPane>
+    <TableView fx:id="userTable" prefHeight="600" prefWidth="1000">
+        <columns>
+            <TableColumn fx:id="colId" text="ID" prefWidth="80"/>
+            <TableColumn fx:id="colUsername" text="Username" prefWidth="200"/>
+            <TableColumn fx:id="colEmail" text="Email" prefWidth="250"/>
+            <TableColumn fx:id="colRole" text="Vai Trò" prefWidth="100"/>
+            <TableColumn fx:id="colActive" text="Hoạt Động" prefWidth="100"/>
+            <TableColumn fx:id="colCreatedAt" text="Ngày Tạo" prefWidth="200"/>
+        </columns>
+    </TableView>
+
+    <HBox spacing="10" alignment="CENTER_LEFT">
+        <Button text="Xóa" onAction="#onDeleteUserButtonClick"/>
+        <Button text="Khóa" onAction="#onLockUserButtonClick"/>
+        <Button text="Mở Khóa" onAction="#onUnlockUserButtonClick"/>
+    </HBox>
+
+</VBox>

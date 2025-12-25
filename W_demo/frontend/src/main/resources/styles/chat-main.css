@@ -1,12 +1,13 @@
 /* ================== GLOBAL ================== */
 
 .root-pane {
-  -fx-background-color: linear-gradient(to bottom right, #eef2ff, #f9fafb);
+  -fx-background-color: rgb(250, 244, 228);
 }
 
 .root {
   -fx-font-family: "Segoe UI", "Roboto", "Arial", sans-serif;
-  -fx-text-fill: #111827;
+  -fx-text-fill: rgb(250, 244, 228);
+;
 }
 
 /* ================== TOPBAR ================== */
@@ -123,7 +124,7 @@
 
 /* CARD CHUNG (panel) – glass style */
 .panel {
-  -fx-background-color: rgba(255, 255, 255, 0.93);
+  -fx-background-color:rgb(250, 244, 228);
   -fx-background-radius: 26;
   -fx-border-radius: 26;
   -fx-padding: 16;

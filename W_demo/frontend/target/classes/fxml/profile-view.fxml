@@ -24,11 +24,20 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.shape.Circle?>
 
-<StackPane maxHeight="Infinity" maxWidth="Infinity" fx:id="root" stylesheets="@../styles/profile.css" xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" fx:controller="chat.client.fx.ProfileController">
+<!-- SỬA: Thay đổi root thành StackPane để dễ dàng xếp lớp -->
+<StackPane fx:id="root"
+           prefHeight="600"
+           prefWidth="1000"
+           stylesheets="@../styles/profile.css"
+           xmlns="http://javafx.com/javafx"
+           xmlns:fx="http://javafx.com/fxml"
+           fx:controller="chat.client.fx.ProfileController"
+           styleClass="gallery-root">
 
-
+    <!-- Nền mờ - ĐẶT Ở DƯỚI CÙNG -->
     <Pane style="-fx-background-color: rgba(0,0,0,0.55);" />
 
+    <!-- Toàn bộ nội dung - ĐẶT Ở TRÊN -->
     <ScrollPane fitToWidth="true" hbarPolicy="NEVER" style="-fx-background-color: transparent;">
         <content>
             <BorderPane>
@@ -36,23 +45,6 @@
                     <Insets bottom="20" left="50" right="50" top="20" />
                 </padding>
 
-                <top>
-                    <HBox fx:id="headerBar" alignment="CENTER_LEFT" spacing="20">
-                        <padding>
-                            <Insets bottom="15" left="30" right="30" top="15" />
-                        </padding>
-                        <Label styleClass="logo-text" text="ZMNT">
-                            <graphic>
-                                <Label style="-fx-font-size: 30pt; -fx-font-weight: bold; -fx-text-fill: black;" text="Z" />
-                            </graphic>
-                        </Label>
-                        <Region HBox.hgrow="ALWAYS" />
-                        <Button fx:id="btnHomeNav" styleClass="nav-icon" text="Home" onAction="#onHome" />
-                        <Button styleClass="nav-icon" text="Profile" />
-                        <Button styleClass="nav-icon" text="Settings" />
-                    </HBox>
-                    <BorderPane.margin><Insets bottom="20" /></BorderPane.margin>
-                </top>
 
                 <center>
                     <HBox alignment="TOP_CENTER" spacing="20">
@@ -101,10 +93,10 @@
                                         <!-- VBox info -->
                                         <VBox maxWidth="Infinity" mouseTransparent="true" pickOnBounds="false" spacing="5">
                                             <HBox.margin><Insets left="20" top="262" /></HBox.margin>
-                                        <VBox spacing="15">
-                                            <Label fx:id="displayNameLabel" maxWidth="Infinity" prefHeight="17.0" prefWidth="811.0" style="-fx-text-fill: #ffffff; -fx-font-size: 20pt" styleClass="profile-name" text="Tên hiển thị" wrapText="true" />
-                                            <Label fx:id="usernameLabel" maxWidth="Infinity" style="-fx-text-fill: #000000; -fx-font-size: 14pt;" text="@username" wrapText="true" />
-                                        </VBox>
+                                            <VBox spacing="15">
+                                                <Label fx:id="displayNameLabel" maxWidth="Infinity" prefHeight="17.0" prefWidth="811.0" style="-fx-text-fill: #ffffff; -fx-font-size: 20pt" styleClass="profile-name" text="Tên hiển thị" wrapText="true" />
+                                                <Label fx:id="usernameLabel" maxWidth="Infinity" style="-fx-text-fill: #000000; -fx-font-size: 14pt;" text="@username" wrapText="true" />
+                                            </VBox>
                                             <Label fx:id="bioLabel" maxWidth="Infinity" style="-fx-text-fill: #000000; -fx-font-size: 11pt;" text="Chưa có tiểu sử" wrapText="true" />
                                         </VBox>
                                     </HBox>
@@ -142,14 +134,14 @@
 
                                                             <Label styleClass="info-label" text="Website:" GridPane.columnIndex="0" GridPane.rowIndex="5" />
                                                             <Hyperlink fx:id="websiteLink" text="Chưa có" GridPane.columnIndex="1" GridPane.rowIndex="5" />
-                                             <rowConstraints>
-                                                <RowConstraints />
-                                                <RowConstraints />
-                                                <RowConstraints />
-                                                <RowConstraints />
-                                                <RowConstraints />
-                                                <RowConstraints />
-                                             </rowConstraints>
+                                                            <rowConstraints>
+                                                                <RowConstraints />
+                                                                <RowConstraints />
+                                                                <RowConstraints />
+                                                                <RowConstraints />
+                                                                <RowConstraints />
+                                                                <RowConstraints />
+                                                            </rowConstraints>
                                                         </GridPane>
                                                     </VBox>
 
@@ -186,16 +178,16 @@
                                                                 <Button onAction="#onSaveProfile" styleClass="save-button" text="Lưu thay đổi" />
                                                                 <Button onAction="#onCancelEdit" text="Hủy" />
                                                             </HBox>
-                                             <rowConstraints>
-                                                <RowConstraints />
-                                                <RowConstraints />
-                                                <RowConstraints />
-                                                <RowConstraints />
-                                                <RowConstraints />
-                                                <RowConstraints />
-                                                <RowConstraints />
-                                                <RowConstraints />
-                                             </rowConstraints>
+                                                            <rowConstraints>
+                                                                <RowConstraints />
+                                                                <RowConstraints />
+                                                                <RowConstraints />
+                                                                <RowConstraints />
+                                                                <RowConstraints />
+                                                                <RowConstraints />
+                                                                <RowConstraints />
+                                                                <RowConstraints />
+                                                            </rowConstraints>
                                                         </GridPane>
                                                     </VBox>
                                                 </StackPane>
@@ -247,6 +239,7 @@
         </content>
     </ScrollPane>
 
+    <!-- DialogPane cho đổi mật khẩu - ĐẶT Ở TRÊN CÙNG -->
     <DialogPane fx:id="changePassDialog" style="-fx-background-color: white; -fx-background-radius: 20; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 20, 0, 0, 10);" visible="false">
         <StackPane.margin>
             <Insets left="400" right="400" top="150" />

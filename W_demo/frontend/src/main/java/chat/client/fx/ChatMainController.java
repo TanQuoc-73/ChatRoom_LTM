@@ -126,7 +126,7 @@ public class ChatMainController implements Initializable {
                 Platform.runLater(this::loadFriendRequestCount);
             }
         });
-        
+
 
         Platform.runLater(() -> {
             checkComponents();
@@ -298,46 +298,43 @@ public class ChatMainController implements Initializable {
     }
 
 
- private void loadProfile() throws Exception {
-    JsonNode me = chatService.get("/users/me");
-    if (me == null) return;
+    private void loadProfile() throws Exception {
+        JsonNode me = chatService.get("/users/me");
+        if (me == null) return;
 
-    long uid = me.path("userId").asLong(me.path("id").asLong(0));
-    currentUserId = uid;
-    prefs.putLong("zmnt_user_id", uid);
+        long uid = me.path("userId").asLong(me.path("id").asLong(0));
+        currentUserId = uid;
+        prefs.putLong("zmnt_user_id", uid);
 
-    String displayName = me.path("displayName")
-            .asText(me.path("username").asText("Bạn"));
+        String displayName = me.path("displayName")
+                .asText(me.path("username").asText("Bạn"));
+        String avatarUrl = me.path("avatarUrl").asText(null);
+        // 🔥 LẤY ROLE
+        String role = me.path("role").asText(null);
+        SessionStore.setRole(role);
+        System.out.println("🔥 USER ROLE = " + role);
+        Platform.runLater(() -> {
+            profileName.setText(displayName);
+            if ("ADMIN".equals(role)) {
+                btnAdmin.setVisible(true);
+            }
+            // 🔥 BẬT ADMIN BUTTON TẠI ĐÂY
+            chatService.connectWebSocket();
 
-    String avatarUrl = me.path("avatarUrl").asText(null);
+            if (avatarUrl != null && !avatarUrl.isBlank()) {
+                loadImageAsync(avatarUrl, profileAvatar);
+            }
+            loadFriendRequestCount();
+        });
+    }
 
-    // 🔥 LẤY ROLE
-    String role = me.path("role").asText(null);
-    SessionStore.setRole(role);
 
-    System.out.println("🔥 USER ROLE = " + role);
-
-    Platform.runLater(() -> {
-        profileName.setText(displayName);
-
-        // 🔥 BẬT ADMIN BUTTON TẠI ĐÂY
-        btnAdmin.setVisible(SessionStore.isModerator());
-
-        chatService.connectWebSocket();
-
-        if (avatarUrl != null && !avatarUrl.isBlank()) {
-            loadImageAsync(avatarUrl, profileAvatar);
-        }
-
-        loadFriendRequestCount();
-    });
-}
 
 
     private void loadFriends() throws Exception {
         if (currentUserId == 0) {
-            currentUserId = prefs.getLong("zmnt_user_id", 0L);
-            if (currentUserId == 0) return;
+            System.err.println("Không thể tải danh sách bạn bè: currentUserId = 0");
+            return; // Dừng thực thi nếu không có ID
         }
 
         JsonNode arr = chatService.get("/friends?currentUserId=" + currentUserId);
@@ -379,29 +376,18 @@ public class ChatMainController implements Initializable {
             // Gọi API và lấy dữ liệu JSON thô
             JsonNode pageNode = chatService.get("/feed?page=0&size=20");
 
-            // ==== QUAN TRỌNG: IN RA DỮ LIỆU JSON ĐỂ KIỂM TRA ====
-            System.out.println("======================================================");
-            System.out.println("RAW JSON RESPONSE FROM SERVER /feed:");
             if (pageNode != null) {
                 System.out.println(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(pageNode));
             } else {
                 System.out.println("Server returned null or empty response.");
             }
-            System.out.println("======================================================");
 
-            // Phần code mapping từ JSON sang danh sách Post
             if (pageNode != null && pageNode.has("content") && pageNode.get("content").isArray()) {
                 posts = mapper.convertValue(pageNode.get("content"), new TypeReference<List<Post>>() {});
             }
-
-            // In ra thông tin của đối tượng Post sau khi đã mapping
-            System.out.println("\n===== MAPPED POST OBJECTS =====");
             for (Post post : posts) {
                 System.out.println("Post ID: " + post.getId() + ", Caption: '" + post.getCaption() + "'");
             }
-            System.out.println("=================================\n");
-
-
         } catch (Exception e) {
             System.err.println("Error loading feed: " + e.getMessage());
             e.printStackTrace();
@@ -418,7 +404,7 @@ public class ChatMainController implements Initializable {
         new Thread(() -> {
             try {
                 String fullUrl = url.startsWith("http") ? url :
-                        "http://192.168.0.100:8081/api" + (url.startsWith("/") ? url : "/" + url);
+                        "http://192.192.192.192:8081/api" + (url.startsWith("/") ? url : "/" + url);
                 Image img = new Image(fullUrl, true);
                 img.progressProperty().addListener((obs, oldVal, newVal) -> {
                     if (newVal.doubleValue() == 1.0) {
@@ -442,7 +428,6 @@ public class ChatMainController implements Initializable {
         mainContentPane.getChildren().setAll(feedView);
     }
 
-
     @FXML
     private void onPhotos() {
         new Thread(this::loadFeedSafe).start();
@@ -453,18 +438,28 @@ public class ChatMainController implements Initializable {
         showPostDialog();
     }
     @FXML
-private void onAdmin() {
-    try {
-        FXMLLoader loader =
-            new FXMLLoader(getClass().getResource("/fxml/admin-view.fxml"));
-        Parent adminView = loader.load();
+    private void onAdmin() {
+        try {
+            // --- THÊM ĐOẠN NÀY ĐỂ GỠ LỖI ---
+            System.out.println("Searching for FXML at path: " + getClass().getResource("/fxml/admin-view.fxml"));
+            // ------------------------------------
 
-        mainContentPane.getChildren().setAll(adminView);
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/admin-view.fxml"));
+            Parent adminView = loader.load();
 
-    } catch (Exception e) {
-        e.printStackTrace();
+            mainContentPane.getChildren().setAll(adminView);
+
+        } catch (Exception e) {
+            System.err.println("Failed to load admin panel FXML.");
+            e.printStackTrace();
+
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Lỗi");
+            alert.setHeaderText("Không thể tải trang quản lý");
+            alert.setContentText("Đã xảy ra lỗi: " + e.getMessage());
+            alert.showAndWait();
+        }
     }
-}
 
 
     private void showPostDialog() {
@@ -698,24 +693,35 @@ private void onAdmin() {
         }
     }
 
+
     @FXML
     private void goToProfile() {
+        System.out.println("Đang hiển thị trang cá nhân trong main content...");
+
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/profile-view.fxml"));
-            Parent root = loader.load();
-            ProfileController controller = loader.getController();
+            Parent profileRoot = loader.load();
+            ProfileController profileController = loader.getController();
 
-            controller.setPrimaryStage(primaryStage);
-            controller.setLogoutCallback(() -> {
-                SessionStore.clearSession();
+            // Xóa các view hiện tại và thêm view profile vào mainContentPane
+            mainContentPane.getChildren().clear();
+            mainContentPane.getChildren().add(profileRoot);
+
+            // Truyền các tham số cần thiết cho controller
+            profileController.setMainController(this); // Để ProfileController có thể gọi các phương thức của ChatMainController
+
+            // CẤU HÌNH QUAN TRỌNG: Thiết lập callback đăng xuất
+            // Khi logout, callback này sẽ gọi showLoginScreen() để chuyển về màn hình đăng nhập
+            profileController.setLogoutCallback(() -> {
+                // Gọi phương thức showLoginScreen() hiện có để hiển thị màn hình đăng nhập
                 showLoginScreen();
             });
 
-            primaryStage.setScene(new Scene(root));
-            primaryStage.setTitle("Profile - ZMNT");
-            primaryStage.centerOnScreen();
-
         } catch (IOException e) {
+            showError("Lỗi hiển thị trang cá nhân", "Không thể tải giao diện trang cá nhân: " + e.getMessage());
+            e.printStackTrace();
+        } catch (Exception e) {
+            showError("Lỗi", "Không thể hiển thị trang cá nhân: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -727,6 +733,17 @@ private void onAdmin() {
     }
 
     private void showLoginScreen() {
+
+        currentUserId = 0L;
+
+        if (friendReloadScheduler != null && !friendReloadScheduler.isShutdown()) {
+            friendReloadScheduler.shutdownNow();
+        }
+        if (heartbeatScheduler != null && !heartbeatScheduler.isShutdown()) {
+            heartbeatScheduler.shutdownNow();
+        }
+        // ------------------------------------
+
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/login-view.fxml"));
             Parent root = loader.load();

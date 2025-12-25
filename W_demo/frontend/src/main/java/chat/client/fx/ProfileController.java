@@ -38,6 +38,8 @@ import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.concurrent.*;
+import javafx.scene.layout.BorderPane;
+
 
 public class ProfileController {
 
@@ -46,6 +48,8 @@ public class ProfileController {
     private final HttpClient httpClient;
     private final ObjectMapper mapper;
     private final ExecutorService executor;
+    private StackPane mainContentPane;
+    private ChatMainController mainController;
 
     public ProfileController() {
         this.httpClient = HttpClient.newBuilder()
@@ -59,6 +63,11 @@ public class ProfileController {
         });
     }
 
+
+    public void setMainController(ChatMainController mainController) {
+        this.mainController = mainController;
+    }
+
     public void setPrimaryStage(Stage stage) {
         this.primaryStage = stage;
     }
@@ -67,10 +76,15 @@ public class ProfileController {
         this.logoutCallback = callback;
     }
 
-    private static final String API_BASE = "http://192.168.0.100:8081/api";
+    public void setMainContentPane(StackPane mainContentPane) {
+        this.mainContentPane = mainContentPane;
+    }
+
+    private static final String API_BASE = "http://192.192.192.192:8081/api";
 
     // ==================== FXML ELEMENTS ====================
     @FXML private StackPane root;
+
     @FXML private ImageView avatarImage;
     @FXML private Circle avatarClip;
     @FXML private ImageView coverImage;
@@ -108,13 +122,18 @@ public class ProfileController {
     @FXML private StackPane avatarContainer;
     @FXML private StackPane coverStackPane;
 
+
+    @FXML private Button btnHomeNav;
+    @FXML private Button changeCoverButton;
+
     // ==================== Phương Thức Initialize ====================
     @FXML
     public void initialize() {
         setupUI();
-        showLoadingState();
+        setupSizeBehavior();
         loadProfile();
     }
+
     // ==================== Các Phương Thức Cấu Hình UI ====================
     private void setupUI() {
         String cssPath = "/styles/profile.css";
@@ -218,6 +237,13 @@ public class ProfileController {
             verifiedLabel.setText("...");
             userIdLabel.setText("ID người dùng: ...");
         });
+    }
+
+    private void setupSizeBehavior() {
+        if (root != null) {
+            // Đảm bảo view có thể mở rộng theo cửa sổ
+            root.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+        }
     }
 
     // ==================== Các Phương Thức Tải Profile ====================
@@ -367,48 +393,15 @@ public class ProfileController {
         }));
     }
     //
-    @FXML
-    private Button btnHomeNav;
+
+
+    // Trong ProfileController.java
 
     @FXML
     private void onHome(ActionEvent event) {
-        try {
-            System.out.println("Navigating to Home...");
-
-            dispose();
-
-            FXMLLoader loader = new FXMLLoader(
-                    getClass().getResource("/fxml/chat-main.fxml")
-            );
-            Parent root = loader.load();
-
-            ChatMainController controller = loader.getController();
-            if (controller != null && primaryStage != null) {
-                controller.setPrimaryStage(primaryStage);
-                controller.setOnLogoutCallback(logoutCallback);
-            }
-
-            Scene scene = new Scene(root, 1200, 800);
-
-            URL cssUrl = getClass().getResource("/styles/chat-main.css");
-            if (cssUrl != null) {
-                scene.getStylesheets().add(cssUrl.toExternalForm());
-                System.out.println("CSS loaded: " + cssUrl.toExternalForm());
-            } else {
-                System.err.println("CSS not found: /styles/chat-main.css");
-            }
-
-            Stage stage = (Stage) btnHomeNav.getScene().getWindow();
-            stage.setScene(scene);
-            stage.setTitle("ZMNT Chat");
-
-            System.out.println("Home page opened with CSS");
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.err.println("Error loading home: " + e.getMessage());
-            showError("Lỗi điều hướng", "Không thể quay về trang chủ");
-        }
+        // Lấy Stage hiện tại và đóng nó
+        Stage currentStage = (Stage) ((javafx.scene.Node) event.getSource()).getScene().getWindow();
+        currentStage.close();
     }
 
     @FXML
@@ -456,24 +449,24 @@ public class ProfileController {
 
                 StringBuilder sb = new StringBuilder();
                 sb.append("--").append(boundary).append("\r\n");
+                // Giữ nguyên tên "file" cho phần file, đây là một quy ước phổ biến
                 sb.append("Content-Disposition: form-data; name=\"file\"; filename=\"")
                         .append(file.getName()).append("\"\r\n");
                 sb.append("Content-Type: ").append(mime).append("\r\n\r\n");
                 byte[] header = sb.toString().getBytes();
 
                 StringBuilder sb2 = new StringBuilder();
-                sb2.append("\r\n--").append(boundary).append("\r\n");
-                sb2.append("Content-Disposition: form-data; name=\"mediaType\"\r\n\r\n");
-                sb2.append(mediaType).append("\r\n");
-                sb2.append("--").append(boundary).append("--\r\n");
+                sb2.append("\r\n--").append(boundary).append("--\r\n");
                 byte[] footer = sb2.toString().getBytes();
 
                 HttpRequest.BodyPublisher body = HttpRequest.BodyPublishers.ofByteArrays(
                         List.of(header, fileBytes, footer)
                 );
 
+                // THAY ĐỔI: Thêm mediaType vào URL dưới dạng tham số truy vấn
+                String uploadUrl = API_BASE + "/media/upload?mediaType=" + mediaType;
                 HttpRequest uploadReq = HttpRequest.newBuilder()
-                        .uri(URI.create(API_BASE + "/media/upload"))
+                        .uri(URI.create(uploadUrl))
                         .header("Authorization", "Bearer " + SessionStore.getSessionToken())
                         .header("Content-Type", "multipart/form-data; boundary=" + boundary)
                         .POST(body)
@@ -592,12 +585,25 @@ public class ProfileController {
 
                 Platform.runLater(() -> {
                     if (resp.statusCode() == 200 || resp.statusCode() == 204) {
-                        showAlert("Thành công",
-                                "Đổi mật khẩu thành công! Đang đăng xuất...");
+                        // --- THÀNH CÔNG ---
+                        showAlert("Thành công", "Đổi mật khẩu thành công! Đang đăng xuất...");
                         changePassDialog.setVisible(false);
-                        SessionStore.clearSession();
-                        redirectToLogin();
+
+                        // Thêm độ trễ 2 giây để người dùng đọc thông báo
+                        new Thread(() -> {
+                            try {
+                                Thread.sleep(2000);
+                                Platform.runLater(() -> {
+                                    // Dọn dẹp session và gọi callback đăng xuất
+                                    SessionStore.clearSession();
+                                    redirectToLogin();
+                                });
+                            } catch (InterruptedException e) {
+                                Thread.currentThread().interrupt();
+                            }
+                        }).start();
                     } else {
+                        // --- THẤT BẠI ---
                         showError("Đổi mật khẩu thất bại", resp.body());
                     }
                 });
@@ -632,7 +638,11 @@ public class ProfileController {
         alert.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
                 if (logoutCallback != null) {
-                    logoutCallback.run();
+                    logoutCallback.run(); // Gọi callback để hiển thị màn hình đăng nhập
+                }
+                // THÊM DÒNG NÀY ĐỂ ĐÓNG CỬA SỔ PROFILE
+                if (primaryStage != null) {
+                    primaryStage.close();
                 }
             }
         });

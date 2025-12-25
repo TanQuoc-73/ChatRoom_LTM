@@ -66,6 +66,12 @@ public class SecurityConfig {
                     "/ws-chat/**",
                     "/api/v1/realtime/**"
                 ).permitAll()
+
+                    // Cho phép tất cả authenticated vào API admin
+                    .requestMatchers("/admin/**").authenticated()
+
+                    // Hoặc gộp chung
+                    .requestMatchers("/api/**", "/admin/**").authenticated()
                 // các request còn lại cần xác thực
                 .anyRequest().authenticated()
             )

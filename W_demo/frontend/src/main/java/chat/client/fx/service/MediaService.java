@@ -136,7 +136,7 @@ public class MediaService {
         }
 
         // Otherwise construct full URL
-        String baseUrl = "http://192.168.0.100:8081/api";
+        String baseUrl = "http://192.192.192.192:8081/api";
 
         // Ensure proper path formatting
         if (!fileUrl.startsWith("/")) {

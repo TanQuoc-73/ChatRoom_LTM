@@ -71,6 +71,7 @@
             </children>
         </HBox>
     </top>
+
    <center>
         <HBox styleClass="layout" BorderPane.alignment="CENTER">
 
@@ -113,28 +114,25 @@
                     </children>
                 </VBox>
             </VBox>
-<StackPane fx:id="mainContentPane"
-           styleClass="col center-col"
-           HBox.hgrow="ALWAYS">
 
-    <VBox fx:id="feedView" spacing="14">
+            <StackPane fx:id="mainContentPane"
+                       styleClass="col center-col"
+                       HBox.hgrow="ALWAYS">
+                <VBox fx:id="feedView" spacing="14">
+                    <!-- CURRENT USER SMALL -->
+                    <HBox alignment="CENTER_LEFT" prefHeight="36.0" spacing="10" styleClass="panel profile-small">
+                        <ImageView fx:id="profileAvatar" fitHeight="40" fitWidth="50"/>
+                        <Label fx:id="profileName"/>
+                    </HBox>
 
-        <!-- CURRENT USER SMALL -->
-        <HBox alignment="CENTER_LEFT" prefHeight="36.0" spacing="10" styleClass="panel profile-small">
-            <ImageView fx:id="profileAvatar" fitHeight="36" fitWidth="36"/>
-            <Label fx:id="profileName"/>
-        </HBox>
+                    <!-- MAIN FEED POST -->
+                    <VBox spacing="10" styleClass="panel main-post" VBox.vgrow="ALWAYS">
+                        <ListView fx:id="feedListView" VBox.vgrow="ALWAYS"/>
+                    </VBox>
 
-        <!-- MAIN FEED POST -->
-        <VBox spacing="10" styleClass="panel main-post" VBox.vgrow="ALWAYS">
-            <ListView fx:id="feedListView" VBox.vgrow="ALWAYS"/>
-        </VBox>
-
-    </VBox>
-</StackPane>
-
-
-            <!-- RIGHT COLUMN -->
+                </VBox>
+            </StackPane>
+                        <!-- RIGHT COLUMN -->
             <VBox maxWidth="360" minWidth="260" prefWidth="320" spacing="14" styleClass="col right-col">
 
                 <!-- FRIEND LIST -->

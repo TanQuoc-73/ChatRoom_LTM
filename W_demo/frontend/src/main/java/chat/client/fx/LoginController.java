@@ -31,7 +31,7 @@ import javafx.scene.layout.VBox;
 
 public class LoginController {
 
-    private static final String API_BASE = "http://192.168.0.100:8081/api";
+    private static final String API_BASE = "http://192.192.192.192:8081/api";
     private static final String SESSION_PREFS = "zmnt_chat_session";
 
     private Stage primaryStage;

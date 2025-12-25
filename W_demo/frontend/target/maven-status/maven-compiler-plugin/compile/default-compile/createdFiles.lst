@@ -30,3 +30,4 @@ chat\client\fx\ChatMainController$GroupCell.class
 chat\client\fx\ChatMainController$3.class
 chat\client\fx\GalleryController.class
 chat\client\fx\ChatMainController$SearchResultCell.class
+chat\client\fx\dto\UserManagementDTO.class

@@ -24,7 +24,7 @@ import java.util.prefs.Preferences;
 public class RegisterController {
 
     // ========================== CÀI ĐẶT KẾT NỐI API ==========================
-    private static final String API_BASE = "http://192.168.0.100:8081/api";     // Địa chỉ server backend
+    private static final String API_BASE = "http://192.192.192.192:8081/api";     // Địa chỉ server backend
     private static final String SESSION_PREFS = "zmnt_chat_session";        // Key lưu trữ Preferences
 
     // Lưu trữ thông tin đăng nhập cục bộ (Preferences của Java)

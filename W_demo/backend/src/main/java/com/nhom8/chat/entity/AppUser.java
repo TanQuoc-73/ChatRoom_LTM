@@ -5,7 +5,14 @@ import java.time.LocalDate;
 
 import com.nhom8.chat.entity.enums.Gender;
 import com.nhom8.chat.entity.enums.UserRole;
+import jakarta.persistence.*;
 
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -19,7 +26,7 @@ import lombok.Data;
 @Data
 @Entity
 @Table(name = "app_user")
-public class AppUser {
+public class AppUser implements UserDetails { // <-- SỬA Ở ĐÂY
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -70,8 +77,48 @@ public class AppUser {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt = Instant.now();
 
-   @Enumerated(EnumType.STRING)
-   @Column(nullable = false, length = 20)
-   private UserRole role = UserRole.USER;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private UserRole role = UserRole.USER;  // Default là USER
 
+    // Getter & Setter
+    public UserRole getRole() {
+        return role;
+    }
+
+    public void setRole(UserRole role) {
+        this.role = role;
+    }
+
+    // --- Các phương thức của interface UserDetails ---
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
+    }
+
+    @Override
+    public String getPassword() {
+        return passwordHash;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return active;
+    }
 }

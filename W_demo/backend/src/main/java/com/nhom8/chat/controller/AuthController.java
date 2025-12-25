@@ -57,7 +57,8 @@ public class AuthController {
                 user.getId(), 
                 user.getUsername(),
                 user.getDisplayName(),
-                session.getSessionToken()
+                session.getSessionToken(),
+                user.getRole()
             ));
             
         } catch (IllegalArgumentException e) {
@@ -86,7 +87,8 @@ public class AuthController {
                 session.getUser().getId(),
                 session.getUser().getUsername(),
                 session.getUser().getDisplayName(),
-                session.getSessionToken()
+                session.getSessionToken(),
+                    session.getUser().getRole()
             ));
             
         } catch (IllegalArgumentException e) {
@@ -104,7 +106,7 @@ public class AuthController {
             String sessionToken = extractSessionToken(authorization);
             authService.logout(sessionToken);
             
-            return ResponseEntity.ok(AuthResponse.success("Đăng xuất thành kông, đừng đi mà", null, null, null, null));
+            return ResponseEntity.ok(AuthResponse.success("Đăng xuất thành kông, đừng đi mà", null, null, null, null, null));
             
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(AuthResponse.error(e.getMessage()));
@@ -128,7 +130,8 @@ public class AuthController {
                     user.getId(),
                     user.getUsername(),
                     user.getDisplayName(),
-                    sessionToken
+                    sessionToken,
+                    user.getRole()
                 ));
             } else {
                 return ResponseEntity.status(401).body(AuthResponse.error("Phiên ko hợp lệ hoặc hết hạn"));
@@ -147,7 +150,7 @@ public class AuthController {
 
             return ResponseEntity.ok(AuthResponse.success(
                     "Mã OTP đã được gửi đến email của bạn. Vui lòng kiểm tra hộp thư.",
-                    null, null, null, null));
+                    null, null, null, null, null));
 
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(AuthResponse.error(e.getMessage()));
@@ -168,7 +171,7 @@ public class AuthController {
 
             return ResponseEntity.ok(AuthResponse.success(
                     "Mật khẩu đã được đặt lại thành công. Vui lòng đăng nhập lại.",
-                    null, null, null, null));
+                    null, null, null, null, null));
 
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(AuthResponse.error(e.getMessage()));
